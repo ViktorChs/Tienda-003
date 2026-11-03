@@ -3047,9 +3047,10 @@ var VIEW_ICO = {
       SB.get('activity_log', scope('activity_log', { select: 'text,created_at,user_id', order: 'created_at.desc', limit: '10' })).catch(function () { return []; }),
       SB.get('admins', scope('admins', { select: 'id,name,username' })).catch(function () { return []; }),
       SB.get('orders', scope('orders', { select: 'id,status' })).catch(function () { return []; }),
-      getSettings().catch(function () { return {}; })
+      getSettings().catch(function () { return null; })
     ]).then(function (r) {
       var prod = r[0], cats = r[1], log = r[2] || [], admins = r[3] || [], orders = r[4] || [], settings = r[5] || {};
+      var settingsOk = r[5] != null;
       draw();
 
       function draw() {
@@ -3087,7 +3088,7 @@ var VIEW_ICO = {
                 '<p class="dash-hero-sub">' + esc(dateStr) + ' · <strong style="color:' + (isOpen ? 'var(--ok)' : 'var(--danger)') + '">' + (isOpen ? 'Tienda abierta' : 'Tienda cerrada') + '</strong></p>' +
               '</div>' +
               '<div class="dash-hero-actions">' +
-                '<button type="button" class="btn ' + (isOpen ? '' : 'primary') + '" data-store-power="' + (isOpen ? 'close' : 'open') + '">' +
+                '<button type="button" class="btn ' + (isOpen ? '' : 'primary') + '" data-store-power="' + (isOpen ? 'close' : 'open') + '"' + (settingsOk ? '' : ' disabled title="No se pudieron cargar los ajustes"') + '>' +
                   (isOpen ? 'Cerrar tienda' : 'Abrir tienda') + '</button>' +
                 '<button type="button" class="btn primary" data-create="productos">+ Nuevo producto</button>' +
                 '<button type="button" class="btn" data-tab="pedidos">Ver pedidos</button>' +
@@ -3132,6 +3133,7 @@ var VIEW_ICO = {
         $all('[data-store-power]', mount).forEach(function (b) {
           b.addEventListener('click', function () {
             var wantOpen = b.dataset.storePower === 'open';
+            if (!settingsOk) return toast('No se pudieron cargar los ajustes de la tienda', 'err');
             function apply() {
               var next = JSON.parse(JSON.stringify(settings || {}));
               next.store = next.store || {};
