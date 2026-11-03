@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum PC Pro - Next-Gen Computing</title>
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/dark.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #transition-grid {
+            pointer-events: none;
+            display: grid;
+            position: fixed;
+            inset: -2px;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #transition-grid.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .grid-square {
+            background-color: #F8F8FA;
+            transform: scale(0);
+            transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+            width: 101%;
+            height: 101%;
+        }
+        .grid-square.show {
+            transform: scale(1.02);
+        }
+        .grid-square.hide {
+            transform: scale(0);
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.05); }
+        }
+        .animate-glow {
+            animation: pulse-glow 6s infinite ease-in-out;
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/css/tailwind.css">
+</head>
+<body class="h-full flex items-center justify-center relative selection:bg-cyan-500 selection:text-white">
+
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-cyan-400/20 to-blue-400/20 rounded-full blur-[120px] animate-glow"></div>
+        <div class="absolute bottom-10 right-10 w-[400px] h-[400px] bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- Responsive Transition Grid Overlay -->
+    <div id="transition-grid" aria-hidden="true"></div>
+
+    <main id="main-view" class="relative z-10 w-full max-w-md mx-4 transition-opacity duration-300">
+        <div class="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-2xl shadow-slate-200/60 relative group overflow-hidden text-center">
+            
+            <div class="absolute -inset-px bg-gradient-to-b from-cyan-500/30 via-transparent to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+            <div class="flex items-center justify-between mb-6">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-600 border border-cyan-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                    Responsive Transition Demo
+                </span>
+                <span class="text-xs font-mono text-slate-400">FLUID V2</span>
+            </div>
+
+            <div class="relative w-full h-48 rounded-2xl bg-gradient-to-br from-slate-100 via-white to-indigo-50/50 border border-slate-200 flex items-center justify-center overflow-hidden mb-6 group-hover:border-cyan-500/40 transition-colors duration-300">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1)_0%,transparent_70%)]"></div>
+                <div class="relative z-10 flex flex-col items-center">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-lg shadow-cyan-500/20 transform group-hover:scale-105 transition-transform duration-500">
+                        <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
+                            <svg class="w-10 h-10 text-cyan-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <span class="mt-3 font-mono text-xs text-cyan-600 tracking-wider">CLICK TO TRIGGER EFFECT</span>
+                </div>
+            </div>
+
+            <h1 class="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Quantum PC Pro</h1>
+            <p class="text-slate-600 text-sm leading-relaxed mb-6">
+                Click below to trigger the responsive #F8F8FA square overlay transition effect optimized for all screens up to 1080p and beyond.
+            </p>
+
+            <button id="view-details-btn" class="w-full relative group/btn overflow-hidden rounded-xl p-px font-semibold text-sm shadow-lg shadow-cyan-500/20 active:scale-[0.98] transition-transform">
+                <span class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 transition-all duration-300 group-hover/btn:opacity-90"></span>
+                <span class="relative flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 rounded-[11px] text-white transition-colors duration-300 group-hover/btn:bg-transparent">
+                    <span>View Product Details</span>
+                    <svg class="w-4 h-4 text-cyan-400 group-hover/btn:text-white group-hover/btn:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </span>
+            </button>
+        </div>
+    </main>
+
+    <div id="details-view" class="hidden absolute inset-0 z-20 flex items-center justify-center px-4 bg-slate-100/95 backdrop-blur-md">
+        <div class="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-8 text-center shadow-xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Product Details Loaded</h2>
+            <p class="text-slate-600 text-sm mb-6">
+                The top-left to bottom-right #F8F8FA square transition rendered seamlessly across your display resolution.
+            </p>
+            <button id="back-btn" class="w-full py-3.5 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-colors shadow-lg">
+                Back to Product Card
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const transitionGrid = document.getElementById('transition-grid');
+            const mainView = document.getElementById('main-view');
+            const detailsView = document.getElementById('details-view');
+            const viewDetailsBtn = document.getElementById('view-details-btn');
+            const backBtn = document.getElementById('back-btn');
+
+            let cols = 16;
+            let rows = 12;
+            let squares = [];
+
+            function computeResponsiveGrid() {
+                const width = window.innerWidth;
+                // Adapt density based on screen resolution (mobile up to 1080p+)
+                if (width < 640) {
+                    cols = 10;
+                    rows = 14;
+                } else if (width < 1024) {
+                    cols = 14;
+                    rows = 10;
+                } else if (width <= 1920) {
+                    cols = 20;
+                    rows = 12;
+                } else {
+                    cols = 24;
+                    rows = 14;
+                }
+
+                transitionGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                transitionGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+                
+                transitionGrid.innerHTML = '';
+                squares = [];
+
+                const totalSquares = cols * rows;
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < totalSquares; i++) {
+                    const square = document.createElement('div');
+                    square.className = 'grid-square';
+                    fragment.appendChild(square);
+                    squares.push(square);
+                }
+                transitionGrid.appendChild(fragment);
+            }
+
+            computeResponsiveGrid();
+
+            window.addEventListener('resize', () => {
+                if (!transitionGrid.classList.contains('active')) {
+                    computeResponsiveGrid();
+                }
+            });
+
+            const totalDurationMs = 450;
+
+            function animateTransition(isEntering, onComplete) {
+                transitionGrid.classList.add('active');
+                const maxRowColSum = (rows - 1) + (cols - 1);
+
+                squares.forEach((square, index) => {
+                    const row = Math.floor(index / cols);
+                    const col = index % cols;
+                    const sum = row + col;
+                    
+                    const delay = (sum / maxRowColSum) * (totalDurationMs * 0.7);
+
+                    setTimeout(() => {
+                        if (isEntering) {
+                            square.classList.add('show');
+                            square.classList.remove('hide');
+                        } else {
+                            square.classList.remove('show');
+                            square.classList.add('hide');
+                        }
+                    }, delay);
+                });
+
+                const totalAnimationTime = (totalDurationMs * 0.7) + 280;
+
+                setTimeout(() => {
+                    if (onComplete) onComplete();
+                }, totalAnimationTime);
+            }
+
+            viewDetailsBtn.addEventListener('click', () => {
+                viewDetailsBtn.disabled = true;
+
+                animateTransition(true, () => {
+                    mainView.classList.add('hidden');
+                    detailsView.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        animateTransition(false, () => {
+                            transitionGrid.classList.remove('active');
+                            viewDetailsBtn.disabled = false;
+                        });
+                    }, 300);
+                });
+            });
+
+            backBtn.addEventListener('click', () => {
+                backBtn.disabled = true;
+
+                animateTransition(true, () => {
+                    detailsView.classList.add('hidden');
+                    mainView.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        animateTransition(false, () => {
+                            transitionGrid.classList.remove('active');
+                            backBtn.disabled = false;
+                        });
+                    }, 300);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

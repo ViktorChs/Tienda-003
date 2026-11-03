@@ -1,0 +1,96 @@
+/* ============================================================
+   Efecto "glow border" al pasar el cursor.
+   Recorrido de luz morada con nucleo blanco por el borde de las
+   tarjetas de producto, combos y categorias.
+   Adaptado de glowcart.html para funcionar con overflow:hidden
+   (el anillo se recorta con mask, no sobresale de la tarjeta).
+   ============================================================ */
+
+@property --gh-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+
+.product-card,
+.combo-card,
+.category-card { position: relative; }
+
+/* Solo un anillo de 2px: el mask deja visible unicamente el borde */
+.product-card::after,
+.combo-card::after,
+.category-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: var(--gh-fx-ring, 2px);
+    background: conic-gradient(
+        from var(--gh-angle),
+        color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 0%, transparent) 0deg,
+        var(--gh-fx-hover, #7c3aed) 70deg,
+        color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 55%, var(--gh-fx-core, #fff)) 120deg,
+        color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 30%, var(--gh-fx-core, #fff)) 158deg,
+        var(--gh-fx-core, #fff) 180deg,
+        color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 30%, var(--gh-fx-core, #fff)) 202deg,
+        color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 55%, var(--gh-fx-core, #fff)) 240deg,
+        var(--gh-fx-hover, #7c3aed) 290deg,
+        color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 0%, transparent) 360deg
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.product-card:hover::after,
+.combo-card:hover::after,
+.category-card:hover::after {
+    opacity: 1;
+    /* --gh-fx-anim lo inyecta el panel (store.js applyFx). "none" = sin giro. */
+    animation: var(--gh-fx-anim, gh-border-run 3.2s linear infinite);
+}
+
+@keyframes gh-border-run {
+    to { --gh-angle: 360deg; }
+}
+
+/* Brillo exterior tenue acompanando al anillo (solo en hover) */
+.product-card:hover,
+.combo-card:hover,
+.category-card:hover {
+    box-shadow: 0 15px 35px color-mix(in srgb, var(--gh-fx-glow, var(--gh-fx-hover, #7c3aed)) 28%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .product-card:hover::after,
+    .combo-card:hover::after,
+    .category-card:hover::after {
+        animation: none;
+    }
+}
+
+/* ============================================================
+   Interruptores por tienda (clases en <html>, las pone store.js).
+   fx-cards-off = efecto de hover desactivado por completo.
+   fx-noglow    = solo el resplandor exterior apagado.
+   ============================================================ */
+html.fx-cards-off .product-card::after,
+html.fx-cards-off .combo-card::after,
+html.fx-cards-off .category-card::after { display: none; }
+
+html.fx-cards-off .product-card::before,
+html.fx-cards-off .combo-card::before,
+html.fx-cards-off .category-card::before { opacity: 0 !important; }
+
+html.fx-cards-off .product-card:hover,
+html.fx-cards-off .combo-card:hover,
+html.fx-cards-off .category-card:hover { box-shadow: none; transform: none; }
+
+html.fx-noglow .product-card:hover,
+html.fx-noglow .combo-card:hover,
+html.fx-noglow .category-card:hover { box-shadow: none; }

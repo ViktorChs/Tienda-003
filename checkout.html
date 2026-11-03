@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://isnbkqgzncjgttijzlmo.supabase.co">
+    <title>Checkout / Cotización - MANIAWORLD</title>
+    <script src="assets/js/theme.js?v=20261026"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/sb.js"></script>
+    <script src="assets/js/store-gate.js?v=20261026"></script>
+<script src="assets/js/data.js"></script>
+    <link rel="stylesheet" href="assets/css/dark.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f5f7;
+            background-image:
+                radial-gradient(circle 320px at 10% 6%, rgba(168, 85, 247, 0.12), transparent 70%),
+                radial-gradient(circle 300px at 92% 24%, rgba(124, 58, 237, 0.1), transparent 70%);
+            background-attachment: fixed;
+            margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+        }
+        .f-field {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.9rem;
+            padding: 13px 15px;
+            font-size: 14px;
+            color: #111827;
+            font-family: inherit;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+        .f-field:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15);
+        }
+        .f-field::placeholder { color: #9ca3af; }
+        .f-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+        .f-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            width: 100%;
+            border: 0;
+            cursor: pointer;
+            padding: 14px 20px;
+            border-radius: 999px;
+            background: #25d366;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 10px 24px rgba(37, 211, 102, 0.32);
+            transition: transform 160ms var(--pm-ease-out), background-color 160ms ease, box-shadow 160ms ease;
+        }
+        .f-btn:active { transform: scale(0.97); }
+        .f-btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: transform 150ms var(--pm-ease-out), color 150ms ease, border-color 150ms ease;
+        }
+        .f-btn-ghost:active { transform: scale(0.97); }
+        .cart-item {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #eef0f3;
+        }
+        .cart-item:last-child { border-bottom: 0; }
+        .cart-thumb {
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+            border-radius: 0.9rem;
+            object-fit: cover;
+            background: #f3f4f6;
+            border: 1px solid #f3f4f6;
+        }
+        .cart-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .cart-unit { font-size: 11.5px; color: #9ca3af; margin-top: 2px; }
+        .qty {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        .qty button {
+            width: 30px;
+            height: 30px;
+            border: 0;
+            background: none;
+            color: #6d28d9;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 140ms ease, transform 140ms var(--pm-ease-out);
+        }
+        .qty button:active { transform: scale(0.9); }
+        .qty span {
+            min-width: 30px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .qty button:hover { background: #f5f3ff; }
+        .cart-remove {
+            width: 32px;
+            height: 32px;
+            border: 0;
+            border-radius: 999px;
+            background: #fef2f2;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 140ms ease, transform 140ms var(--pm-ease-out);
+        }
+        .cart-remove:active { transform: scale(0.9); }
+        .cart-remove:hover { background: #fee2e2; }
+        .wa-preview { display: none; margin-top: 16px; border-radius: 1.1rem; background: #e7ddd3; border: 1px solid #e5e7eb; padding: 16px; }
+        .wa-preview.is-visible { display: block; }
+        .wa-bubble {
+            background: #dcf8c6;
+            border-radius: 0.9rem 0.9rem 0.25rem 0.9rem;
+            padding: 11px 13px;
+            font-size: 13.5px;
+            line-height: 1.55;
+            color: #111827;
+            white-space: pre-wrap;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+            user-select: text;
+        }
+        .wa-meta { display: flex; justify-content: flex-end; gap: 6px; margin-top: 5px; font-size: 10.5px; color: #6b7280; }
+        .empty-state { text-align: center; padding: 46px 16px; }
+        @media (hover: hover) and (pointer: fine) {
+            .f-btn:hover { background: #1fbe5b; box-shadow: 0 14px 30px rgba(37, 211, 102, 0.42); }
+            .f-btn-ghost:hover { color: #ef4444; border-color: #fecaca; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .f-btn, .f-btn-ghost, .qty button, .cart-remove { transition: background-color 120ms ease, color 120ms ease; transform: none !important; }
+        }
+        .btt {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 55;
+            width: 46px;
+            height: 46px;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 12px 28px rgba(124, 58, 237, 0.4);
+            opacity: 0;
+            transform: translateY(16px);
+            pointer-events: none;
+            transition: opacity 220ms var(--pm-ease-out), transform 220ms var(--pm-ease-out);
+        }
+        .btt.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .btt:active { transform: scale(0.94); }
+        @media (prefers-reduced-motion: reduce) {
+            .btt { transition: opacity 150ms linear; transform: none !important; }
+        }
+        .pl {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            transition: opacity 320ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 320ms;
+        }
+        .pl.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .pl-logo { width: 160px; height: 160px; object-fit: contain; }
+        .pl-ring {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 4px solid #ede9fe;
+            border-top-color: #7c3aed;
+            animation: plSpin 800ms linear infinite;
+        }
+        @keyframes plSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .pl-ring { animation: none; opacity: 0.45; }
+            .pl { transition: opacity 200ms linear, visibility 0s linear 200ms; }
+        }
+    </style>
+    <link rel="stylesheet" href="assets/css/tailwind.css">
+</head>
+<body class="w-full relative">
+
+    <!-- Page loader -->
+    <div id="pageLoader" class="pl" aria-hidden="true">
+        <img src="assets/img/logos/logo2.webp" alt="MANIAWORLD" class="pl-logo" onerror="this.src='https://placehold.co/400x400/ffffff/7c3aed?text=GigaHertz'" loading="eager" decoding="async">
+        <div class="pl-ring"></div>
+    </div>
+    <script>
+        (function () {
+            var loader = document.getElementById('pageLoader');
+            var start = Date.now();
+            document.body.style.overflow = 'hidden';
+            function hide() {
+                loader.classList.add('is-done');
+                document.body.style.overflow = '';
+                setTimeout(function () {
+                    if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+                }, 450);
+            }
+            function finish() {
+                var remain = 3000 - (Date.now() - start);
+                if (remain > 0) setTimeout(hide, remain);
+                else hide();
+            }
+            if (document.readyState === 'complete') finish();
+            else window.addEventListener('load', finish);
+        })();
+    </script>
+
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 w-full h-16 z-30 flex items-center justify-between px-4 sm:px-8 border-b border-gray-200/40" style="background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 70%, rgba(255, 255, 255, 0) 100%); backdrop-filter: blur(8px);">
+        <div class="flex items-center space-x-8 flex-shrink-0">
+            <a href="index.html" class="flex items-center space-x-2">
+                <span class="font-bold text-gray-900 tracking-wide text-sm sm:text-base">MANIAWORLD</span>
+            </a>
+        </div>
+
+        <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-700 absolute left-1/2 -translate-x-1/2">
+            <a href="index.html#inicio" class="hover:text-purple-600 transition-colors">Inicio</a>
+            <a href="catalogo.html" class="hover:text-purple-600 transition-colors">Productos</a>
+            <a href="index.html#productos" class="js-cat-nav hover:text-purple-600 transition-colors cursor-pointer">Categorias</a>
+            <a href="ubicacion.html" class="hover:text-purple-600 transition-colors">Ubicación</a>
+            <a href="contacto.html" class="hover:text-purple-600 transition-colors">Contacto</a>
+        </div>
+
+        <div class="flex items-center space-x-2 sm:space-x-3 text-gray-800">
+            <a href="checkout.html" class="p-2 rounded-full hover:bg-gray-200/60 transition-colors relative" title="Carrito">
+                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span id="cartCountNav" class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center justify-center shadow-md" hidden>0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="pt-28 pb-20 px-4 sm:px-8 relative z-10">
+        <div class="max-w-6xl mx-auto">
+
+            <div class="text-center mb-10">
+                <span class="text-purple-600 font-bold text-xs uppercase tracking-widest mb-2 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">Paso final</span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">Checkout / Cotización</h1>
+                <p class="text-gray-500 text-sm max-w-lg mx-auto">Revisa los productos que quieres cotizar, completa tus datos y envía la solicitud por WhatsApp.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
+
+                <!-- Cart / Quote list -->
+                <section class="glass-panel rounded-3xl p-6 sm:p-8" aria-labelledby="cartTitle">
+                    <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                        <h2 id="cartTitle" class="text-gray-900 font-bold text-base sm:text-lg flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                            Quiero cotizar
+                        </h2>
+                        <span id="cartItemsCount" class="text-xs font-bold text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1 rounded-full">0 artículos</span>
+                    </div>
+
+                    <div id="cartList"></div>
+
+                    <div id="cartFooter" class="mt-4 pt-4 border-t border-gray-200" hidden>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-sm font-semibold text-gray-600">Total estimado</span>
+                            <span id="cartTotal" class="text-xl font-extrabold text-purple-600">$0.00</span>
+                        </div>
+                        <button type="button" id="cartClear" class="f-btn-ghost">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Vaciar carrito
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Quote form -->
+                <section class="glass-panel rounded-3xl p-6 sm:p-8" aria-labelledby="quoteTitle">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#25d366]"></span>
+                        <h2 id="quoteTitle" class="text-gray-900 font-bold text-base sm:text-lg">Tus datos</h2>
+                    </div>
+
+                    <form id="quoteForm" novalidate>
+                        <div class="mb-4">
+                            <label class="f-label" for="qName">Nombre completo</label>
+                            <input class="f-field" type="text" id="qName" placeholder="Nombre y apellido" autocomplete="name">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="f-label" for="qPhone">Teléfono / WhatsApp</label>
+                            <input class="f-field" type="tel" id="qPhone" placeholder="Ej. +58 424 123 4567" autocomplete="tel" inputmode="tel">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="f-label" for="qLocation">Ubicación</label>
+                            <input class="f-field" type="text" id="qLocation" placeholder="Estado, ciudad y zona (ej. Miranda, Los Teques)">
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="f-label" for="qPay">Método de pago</label>
+                            <select class="f-field cursor-pointer" id="qPay">
+                                <option value="">Selecciona un método...</option>
+                                <option>Pago Móvil</option>
+                                <option>Transferencia bancaria</option>
+                                <option>Zelle</option>
+                                <option>Tarjeta de crédito / débito</option>
+                                <option>Pago contra entrega</option>
+                            </select>
+                        </div>
+
+                        <p id="closedNotice" class="hidden text-[12px] text-center mb-3 px-3 py-2 rounded-lg" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca" role="status"></p>
+
+                        <button type="submit" class="f-btn">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32a8.188 8.188 0 0 1-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24m-3.05 4.5c-.18 0-.47.07-.71.34-.24.27-.93.91-.93 2.21s.95 2.55 1.08 2.72c.13.17 1.85 2.83 4.54 3.91 2.23.89 2.68.72 3.16.67.48-.05 1.55-.63 1.77-1.25.22-.62.22-1.15.15-1.26-.07-.11-.24-.17-.51-.3-.27-.13-1.55-.76-1.79-.85-.24-.09-.42-.13-.59.14-.18.27-.69.85-.84 1.03-.15.17-.31.2-.57.07-.27-.14-1.12-.41-2.14-1.32-.79-.7-1.32-1.56-1.48-1.82-.15-.27-.02-.41.12-.55.12-.12.27-.31.4-.47.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.47-.07-.14-.59-1.43-.82-1.95-.21-.51-.43-.44-.59-.45l-.5-.01z"/></svg>
+                            Enviar cotización por WhatsApp
+                        </button>
+                        <p class="text-[11px] text-gray-400 text-center mt-3">Se guardará tu cotización y se abrirá WhatsApp para enviarla.</p>
+                    </form>
+
+                    <div class="wa-preview" id="waPreview" aria-live="polite">
+                        <div class="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Cotización creada · vista previa</div>
+                        <div class="wa-bubble" id="waBubble"></div>
+                        <div class="wa-meta"><span id="waTime"></span><span>✓✓</span></div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-12 px-4 sm:px-8 border-t border-purple-100 relative z-20" style="background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h3 class="text-gray-900 font-bold text-lg mb-2 tracking-wide flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                    MANIAWORLD
+                </h3>
+                <span class="block w-12 h-1 rounded-full bg-purple-500 mb-3"></span>
+                <p class="text-xs text-gray-500 leading-relaxed">Tu tienda de confianza en tecnología, componentes de alta gama y equipos de computación en zulia y toda Venezuela.</p>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Enlaces Rápidos
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="index.html#inicio" class="text-gray-500 hover:text-purple-600 transition-colors">Inicio</a></li>
+                    <li><a href="index.html#lo-mas-vendido" class="text-gray-500 hover:text-purple-600 transition-colors">Lo más vendido</a></li>
+                    <li><a href="catalogo.html" class="text-gray-500 hover:text-purple-600 transition-colors">Catálogo</a></li>
+                    <li><a href="contacto.html" class="text-gray-500 hover:text-purple-600 transition-colors">Contacto</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Categorías Principales
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="index.html#productos" class="text-gray-500 hover:text-purple-600 transition-colors">Componentes & Hardware</a></li>
+                    <li><a href="index.html#productos" class="text-gray-500 hover:text-purple-600 transition-colors">Tarjetas de Video</a></li>
+                    <li><a href="index.html#productos" class="text-gray-500 hover:text-purple-600 transition-colors">Laptops & PCs</a></li>
+                    <li><a href="index.html#productos" class="text-gray-500 hover:text-purple-600 transition-colors">Periféricos Gaming</a></li>
+                </ul>
+                <a href="catalogo.html" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold tracking-wide shadow-lg shadow-purple-600/25 transition-all duration-200 active:scale-[0.97]">
+                    Ver todos los productos
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Contacto
+                </h4>
+                <p class="text-xs text-gray-500 mb-2" data-gh="address">zulia, Venezuela</p>
+                <p class="text-xs text-gray-500 mb-2">Email: <a href="contacto.html" data-gh="email" class="text-purple-600 font-semibold hover:text-purple-700 transition-colors">soporte@gigahertzstore.com</a></p>
+                <p class="text-xs text-gray-500">Teléfono: <span class="text-purple-600 font-semibold" data-gh="phone">+58 (212) 555-GIGA</span></p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto pt-6 border-t border-purple-100 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
+            <p>&copy; 2026 MANIAWORLD. Todos los derechos reservados.</p>
+            <p class="mt-2 sm:mt-0 text-purple-500 font-medium">MANIAWORLD</p>
+        </div>
+    </footer>
+
+    <button id="backToTop" class="btt" type="button" aria-label="Volver arriba">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>
+    </button>
+
+    <script src="assets/js/cart.js"></script>
+    <script>
+        (function () {
+            const list = document.getElementById('cartList');
+            const footer = document.getElementById('cartFooter');
+            const totalEl = document.getElementById('cartTotal');
+            const countEl = document.getElementById('cartItemsCount');
+            const navBadge = document.getElementById('cartCountNav');
+            const clearBtn = document.getElementById('cartClear');
+            const form = document.getElementById('quoteForm');
+            const nameEl = document.getElementById('qName');
+            const phoneEl = document.getElementById('qPhone');
+            const locEl = document.getElementById('qLocation');
+            const payEl = document.getElementById('qPay');
+            const preview = document.getElementById('waPreview');
+            const bubble = document.getElementById('waBubble');
+            const timeEl = document.getElementById('waTime');
+
+            const fmt = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+            function render() {
+                const items = GigaCart.all();
+                const count = GigaCart.count();
+
+                navBadge.textContent = count > 99 ? '99+' : String(count);
+                navBadge.hidden = count === 0;
+                countEl.textContent = count === 1 ? '1 artículo' : count + ' artículos';
+
+                if (!items.length) {
+                    footer.hidden = true;
+                    list.innerHTML =
+                        '<div class="empty-state">' +
+                            '<svg class="w-14 h-14 mx-auto text-purple-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
+                            '<p class="text-gray-500 text-sm mt-4 mb-1 font-semibold">Tu carrito está vacío</p>' +
+                            '<p class="text-gray-400 text-xs mb-5">Agrega productos desde el catálogo para cotizar.</p>' +
+                            '<a href="index.html#lo-mas-vendido" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold tracking-wide shadow-lg shadow-purple-600/25 transition-all duration-200 active:scale-[0.97]">Ver productos</a>' +
+                        '</div>';
+                    return;
+                }
+
+                list.innerHTML = items.map(item => {
+                    const id = encodeURIComponent(item.id);
+                    return '<div class="cart-item">' +
+                        (item.img ? '<img class="cart-thumb" src="' + esc(item.img) + '" alt="" loading="lazy" decoding="async">' : '<div class="cart-thumb"></div>') +
+                        '<div class="flex-1 min-w-0">' +
+                            '<div class="cart-name">' + esc(item.name) + '</div>' +
+                            '<div class="cart-unit">' + fmt(item.price) + ' c/u</div>' +
+                        '</div>' +
+                        '<div class="qty" data-id="' + id + '">' +
+                            '<button type="button" data-action="dec" aria-label="Restar">−</button>' +
+                            '<span>' + item.qty + '</span>' +
+                            '<button type="button" data-action="inc" aria-label="Sumar">+</button>' +
+                        '</div>' +
+                        '<div class="w-20 text-right text-sm font-extrabold text-purple-600">' + fmt(item.price * item.qty) + '</div>' +
+                        '<button type="button" class="cart-remove" data-action="remove" data-id="' + id + '" aria-label="Quitar producto">' +
+                            '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+                        '</button>' +
+                    '</div>';
+                }).join('');
+
+                footer.hidden = false;
+                totalEl.textContent = fmt(GigaCart.total());
+            }
+
+            list.addEventListener('click', e => {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                const wrap = btn.closest('.qty');
+                const id = decodeURIComponent((wrap ? wrap.dataset.id : btn.dataset.id) || '');
+                if (!id) return;
+                const item = GigaCart.all().find(i => i.id === id);
+                if (!item) return;
+                if (action === 'inc') GigaCart.setQty(id, item.qty + 1);
+                if (action === 'dec') GigaCart.setQty(id, item.qty - 1);
+                if (action === 'remove') GigaCart.remove(id);
+            });
+
+            clearBtn.addEventListener('click', () => { GigaCart.clear(); });
+
+            /* Métodos de pago desde la configuración del panel */
+            if (window.GigaData && GigaData.ready) {
+                GigaData.ready.then(function (D) {
+                    var methods = D && D.settings && D.settings.store && D.settings.store.paymentMethods;
+                    if (!methods || !methods.length) return;
+                    var cur = payEl.value;
+                    payEl.innerHTML = '<option value="">Selecciona un método...</option>' +
+                        methods.map(function (m) {
+                            var v = String(m).replace(/</g, '&lt;').replace(/"/g, '&quot;');
+                            return '<option' + (v === cur ? ' selected' : '') + '>' + v + '</option>';
+                        }).join('');
+                });
+            }
+
+            function invalid(el) {
+                el.style.borderColor = '#ef4444';
+                el.focus();
+                setTimeout(() => { el.style.borderColor = ''; }, 1600);
+            }
+
+            /* Tienda cerrada: aviso + desactiva el envío de pedidos. */
+            const closedNotice = document.getElementById('closedNotice');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            function showClosed() {
+                if (!window.ghStoreState) return;
+                const st = window.ghStoreState();
+                if (st.open) { closedNotice.classList.add('hidden'); submitBtn.disabled = false; submitBtn.style.opacity = ''; return; }
+                closedNotice.textContent = window.ghClosedMessage ? window.ghClosedMessage(null, st) : 'Estamos cerrados.';
+                closedNotice.classList.remove('hidden');
+                submitBtn.disabled = true; submitBtn.style.opacity = '.55';
+            }
+            if (window.GigaData && GigaData.ready) { GigaData.ready.then(showClosed); }
+            setTimeout(showClosed, 0);
+
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+
+                if (window.ghStoreState && !window.ghStoreState().open) { showClosed(); return; }
+
+                const items = GigaCart.all();
+                if (!items.length) {
+                    if (list.scrollIntoView) list.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                const nombre = nameEl.value.trim();
+                const telefono = phoneEl.value.trim();
+                const ubicacion = locEl.value.trim();
+                const metodo = payEl.value;
+
+                if (!nombre) return invalid(nameEl);
+                if (!telefono) return invalid(phoneEl);
+                if (!ubicacion) return invalid(locEl);
+                if (!metodo) return invalid(payEl);
+
+                const total = GigaCart.total();
+                const lines = items.map((i, idx) =>
+                    (idx + 1) + '. ' + (i.qty > 1 ? 'x' + i.qty + ' ' : '') + i.name + ' — ' + fmt(i.price * i.qty)
+                ).join('\n');
+
+                const store = (window.GigaData && GigaData.store) ? GigaData.store() : {};
+                const DEFAULT_TPL = '*Cotización - {storeName}*\n\n*Nombre:* {name}\n*Ubicación:* {location}\n*Método de pago:* {paymentMethod}\n\n*Productos:*\n{items}\n\n*Total estimado:* {total}';
+                const tpl = (store.messageTemplate && store.messageTemplate.trim()) ? store.messageTemplate : DEFAULT_TPL;
+                const text = window.ghTemplate ? ghTemplate(tpl, {
+                    storeName: store.name || 'MANIAWORLD',
+                    name: nombre,
+                    location: ubicacion,
+                    paymentMethod: metodo,
+                    items: lines,
+                    total: fmt(total)
+                }) : tpl;
+
+                bubble.textContent = text;
+                const now = new Date();
+                timeEl.textContent = now.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+                preview.classList.add('is-visible');
+                if (preview.scrollIntoView) preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                // Abrir WhatsApp con el mensaje (sincrónico, dentro del gesto del usuario)
+                if (window.waLink) window.open(waLink(store.whatsapp || '', text), '_blank');
+
+                // Guardar el pedido en la BD (segundo plano; no bloquea el envío)
+                if (window.GigaSB && GigaSB.isConfigured && GigaSB.rpc) {
+                    GigaSB.rpc('create_order', {
+                        p_store_id: (window.GIGA_CONFIG && GIGA_CONFIG.STORE_ID) || 1,
+                        p_name: nombre,
+                        p_phone: telefono,
+                        p_location: ubicacion,
+                        p_payment_method: metodo,
+                        p_note: '',
+                        p_items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+                        p_total: total
+                    }).catch(function (err) { console.warn('[checkout] No se pudo guardar el pedido:', err.message); });
+                }
+            });
+
+            window.addEventListener('cart:change', render);
+            render();
+
+            const btt = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => {
+                const max = document.documentElement.scrollHeight - window.innerHeight;
+                const th = Math.min(450, Math.max(80, max * 0.6));
+                btt.classList.toggle('is-visible', window.scrollY > th);
+            }, { passive: true });
+            btt.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            });
+        })();
+    </script>
+    <script src="assets/js/categorias.js"></script>
+    <script src="assets/js/bottomnav.js"></script>
+    <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
+    <script src="assets/js/store.js?v=20261026"></script>
+</body>
+</html>

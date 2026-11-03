@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<!-- CSP estricta del panel: sin scripts inline ni eval (el panel no los usa).
+     Se aplica junto a la de _headers; rige la más restrictiva. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; img-src 'self' data: blob: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://*.supabase.co https://*.workers.dev">
+<title>Panel · MANIAWORLD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap+Sharp:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261102">
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginView" class="login-wrap" hidden>
+  <div class="login-shell">
+    <aside class="login-brand">
+      <div class="login-brand-top">
+        <span class="login-logo-tile">
+          <img src="../assets/img/logos/logo2.webp" alt="" width="34" height="19" decoding="async">
+        </span>
+        <span class="login-brand-name">
+          MANIAWORLD
+          <span class="login-brand-tag">Panel de administración</span>
+        </span>
+      </div>
+
+      <div class="login-brand-copy">
+        <p class="login-eyebrow">Todo tu negocio, en un solo lugar</p>
+        <h2>Tu tienda,<br>bajo control.</h2>
+        <p>Gestiona el catálogo, los pedidos y la apariencia de tu tienda desde un panel claro y rápido.</p>
+      </div>
+
+      <ul class="login-points">
+        <li>
+          <span class="login-point-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg></span>
+          Catálogo, combos y categorías
+        </li>
+        <li>
+          <span class="login-point-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg></span>
+          Pedidos y clientes en tiempo real
+        </li>
+        <li>
+          <span class="login-point-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg></span>
+          Diseño y contenido de la tienda
+        </li>
+      </ul>
+
+      <p class="login-brand-foot">Acceso restringido · Solo personal autorizado</p>
+    </aside>
+
+    <form id="loginForm" class="login-card">
+      <div class="login-card-head">
+        <span class="login-mark">
+          <img src="../assets/img/logos/logo2.webp" alt="MANIAWORLD" width="40" height="22" decoding="async">
+        </span>
+        <h1>Iniciar sesión</h1>
+        <p class="sub">Ingresa tus credenciales para continuar.</p>
+      </div>
+
+      <div class="login-field">
+        <label for="lgEmail">Correo electrónico</label>
+        <div class="login-input">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 7 9 6 9-6"/></svg>
+          <input id="lgEmail" type="email" autocomplete="username" placeholder="tu@correo.com" required>
+        </div>
+      </div>
+
+      <div class="login-field">
+        <div class="login-label-row">
+          <label for="lgPass">Contraseña</label>
+        </div>
+        <div class="login-input">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <input id="lgPass" type="password" autocomplete="current-password" placeholder="••••••••" required>
+          <button class="login-reveal" id="lgReveal" type="button" aria-label="Mostrar contraseña" aria-pressed="false">
+            <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.8 17.8 0 0 1-2.2 3.3"/><path d="M6.2 6.2A17.5 17.5 0 0 0 2 12s3.5 7 10 7a10.6 10.6 0 0 0 5.1-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="lgError" class="login-error" role="alert" aria-live="polite" hidden></div>
+      <div id="lgLock" class="login-lock" hidden></div>
+
+      <button class="btn primary login-submit" id="lgBtn" type="submit">Entrar</button>
+
+      <p class="login-foot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        Acceso seguro
+      </p>
+    </form>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="appView" class="app" hidden>
+  <aside id="sidebar" class="sidebar">
+    <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Cerrar menú">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="ws">
+      <div class="ws-trigger">
+        <span class="ws-l">
+          <span class="ws-avatar">T</span>
+          <span class="ws-meta">
+            <span class="ws-name">Tienda</span>
+            <span class="ws-plan">Panel de tienda</span>
+          </span>
+        </span>
+      </div>
+    </div>
+    <nav class="nav" id="sideNav"></nav>
+    <div class="sidebar-foot">
+      <div class="who" id="whoami">—</div>
+      <a class="nav-item" href="../index.html" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        <span>Ver tienda</span>
+      </a>
+      <button class="nav-item" id="helpBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+        <span>Ayuda y atajos</span>
+      </button>
+      <button class="nav-item" id="logoutBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn ghost menu-toggle" id="menuToggle" aria-label="Menú">☰</button>
+        <h2 id="viewTitle">Panel</h2>
+      </div>
+      <button class="btn ghost theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <button class="search-trigger" id="searchBtn" aria-label="Buscar (Ctrl+K)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span>Buscar</span><kbd>Ctrl K</kbd>
+      </button>
+      <div class="actions" id="viewActions"></div>
+    </header>
+    <section class="view" id="view"></section>
+  </div>
+
+  <!-- Barra inferior (solo teléfono): accesos rápidos + crear -->
+  <nav class="tabbar" id="tabbar" aria-label="Navegación rápida"></nav>
+</div>
+
+<!-- ================= MODAL / TOAST / PALETTE ================= -->
+<div id="modalRoot"></div>
+<div id="paletteRoot" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Aviso de expiración de sesión (no bloquea el trabajo en curso) -->
+<div id="sessWarn" class="sess-warn" role="alertdialog" aria-live="assertive" hidden>
+  <span class="sess-warn-ico" id="sessWarnIco">⏳</span>
+  <span class="sess-warn-txt" id="sessWarnTxt"></span>
+  <button type="button" class="btn primary sm" id="sessStay">Seguir conectado</button>
+</div>
+
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/sb.js"></script>
+<script src="../assets/js/hero-canvas.js"></script>
+<script src="color-picker.js"></script>
+<script src="app.js?v=20261102"></script>
+</body>
+</html>

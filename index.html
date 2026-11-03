@@ -1,0 +1,3099 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://isnbkqgzncjgttijzlmo.supabase.co">
+    <link rel="preload" as="image" href="assets/img/logos/logo2.webp" fetchpriority="high">
+    <title>MANIAWORLD</title>
+    <script src="assets/js/theme.js?v=20261026"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/sb.js"></script>
+    <script src="assets/js/store-gate.js?v=20261026"></script>
+<script src="assets/js/data.js"></script>
+    <script src="assets/js/hero-canvas.js"></script>
+    <link rel="stylesheet" href="assets/css/dark.css">
+    <link rel="stylesheet" href="assets/css/glow-cards.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f5f7;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #canvasContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            transition: height 0.2s ease-out;
+            z-index: 1;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        /* Fondo de portada (tipo "imagen"): 3 tamanos responsive */
+        #heroBg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: none;
+            z-index: 0;
+        }
+        #heroOverlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* Logo del hero: escalable en todos los dispositivos */
+        .hero-logo-img {
+            width: clamp(10rem, 46vw, 16rem);
+            max-width: 88vw;
+            max-height: 72vh;
+            height: auto;
+            object-fit: contain;
+        }
+        @media (min-width: 640px) {
+            .hero-logo-img { width: clamp(16rem, 34vw, 22rem); }
+        }
+        @media (min-width: 1024px) {
+            .hero-logo-img { width: 50rem; max-width: 88vw; }
+        }
+        /* Destellos morados estáticos en las esquinas del canvas */
+        .hero-glow {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                radial-gradient(circle 360px at 0% 0%, rgba(124, 58, 237, 0.30), transparent 70%),
+                radial-gradient(circle 360px at 100% 0%, rgba(168, 85, 247, 0.26), transparent 70%),
+                radial-gradient(circle 320px at 0% 100%, rgba(217, 70, 239, 0.24), transparent 70%),
+                radial-gradient(circle 320px at 100% 100%, rgba(139, 92, 246, 0.26), transparent 70%);
+        }
+        html.dark .hero-glow {
+            background:
+                radial-gradient(circle 400px at 0% 0%, rgba(139, 92, 246, 0.38), transparent 70%),
+                radial-gradient(circle 400px at 100% 0%, rgba(192, 132, 252, 0.32), transparent 70%),
+                radial-gradient(circle 360px at 0% 100%, rgba(232, 121, 249, 0.30), transparent 70%),
+                radial-gradient(circle 360px at 100% 100%, rgba(167, 139, 250, 0.34), transparent 70%);
+        }
+        @media (max-width: 639.98px) {
+            .hero-glow {
+                background:
+                    radial-gradient(circle 240px at 0% 0%, rgba(124, 58, 237, 0.26), transparent 70%),
+                    radial-gradient(circle 240px at 100% 100%, rgba(217, 70, 239, 0.24), transparent 70%);
+            }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+        .category-strip {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(229, 231, 235, 0.8);
+            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.04);
+        }
+        .category-card {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .category-card::before, .product-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle 120px at var(--mouse-x, 50%) var(--mouse-y, 50%), color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 40%, transparent), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .category-card:hover::before, .product-card:hover::before {
+            opacity: 1;
+        }
+        .category-card:hover {
+            border-color: color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 60%, transparent);
+            box-shadow: 0 15px 35px color-mix(in srgb, var(--gh-fx-glow, var(--gh-fx-hover, #7c3aed)) 22%, transparent);
+        }
+        .product-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .product-card:hover {
+            border-color: color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 60%, transparent);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px color-mix(in srgb, var(--gh-fx-glow, var(--gh-fx-hover, #7c3aed)) 18%, transparent);
+        }
+        .product-name {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-weight: 700;
+            color: #111827;
+            font-size: 12px;
+            line-height: 1.3;
+            margin-bottom: 4px;
+            overflow-wrap: anywhere;
+        }
+        .product-sub {
+            display: none;
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.4;
+            min-height: 1.4em;
+            margin-bottom: 8px;
+        }
+        @media (min-width: 768px) {
+            .product-name { font-size: 13.5px; -webkit-line-clamp: 3; }
+            .product-sub { display: block; }
+        }
+        @keyframes smoothMarquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            width: max-content;
+            animation: smoothMarquee 90s linear infinite;
+            will-change: transform;
+        }
+        .slider-viewport:hover .animate-marquee {
+            animation-play-state: paused;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        select option { background-color: #ffffff; color: #1f2937; padding: 8px; }
+
+        /* ===== FAQ ===== */
+        .faq-wrap { margin-top: 72px; }
+        .faq-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(229, 231, 235, 0.9);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.06);
+            padding: 10px 24px;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        .faq-item { border-bottom: 1px solid #eef0f3; }
+        .faq-item:last-child { border-bottom: 0; }
+        .faq-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            width: 100%;
+            padding: 17px 0;
+            border: 0;
+            background: none;
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+            text-align: left;
+            cursor: pointer;
+            transition: color 140ms ease, transform 160ms var(--pm-ease-out);
+        }
+        .faq-head:active { transform: scale(0.995); }
+        .faq-head svg {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
+            color: #7c3aed;
+            transition: transform 200ms var(--pm-ease-out);
+        }
+        .faq-item.is-open .faq-head svg { transform: rotate(180deg); }
+        .faq-panel {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 250ms var(--pm-ease-out);
+        }
+        .faq-item.is-open .faq-panel { grid-template-rows: 1fr; }
+        .faq-panel > div { overflow: hidden; min-height: 0; }
+        .faq-answer {
+            margin: 0;
+            padding-bottom: 17px;
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: #4b5563;
+            max-width: 70ch;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .faq-head:hover { color: #6d28d9; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .faq-panel { transition: none; }
+            .faq-head svg { transition: none; }
+            .faq-head { transform: none !important; }
+        }
+
+        /* ===== Cart badge ===== */
+        @keyframes cartBadgePop {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.35); }
+            100% { transform: scale(1); }
+        }
+        #cartCount.pop { animation: cartBadgePop 240ms var(--pm-ease-out); }
+        @media (prefers-reduced-motion: reduce) {
+            #cartCount.pop { animation: none; }
+        }
+
+        /* ===== Mobile nav drawer ===== */
+        .md-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 65;
+            background: rgba(17, 24, 39, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 220ms var(--pm-ease-out), visibility 0s linear 220ms;
+        }
+        .md-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 220ms var(--pm-ease-out), visibility 0s linear 0s;
+        }
+        .md-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: min(300px, 85vw);
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            box-shadow: 24px 0 60px rgba(17, 24, 39, 0.22);
+            transform: translateX(-100%);
+            transition: transform 280ms var(--pm-ease-out);
+        }
+        .md-overlay.is-open .md-panel { transform: translateX(0); }
+        .md-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid #eef0f3;
+        }
+        .md-head span { font-weight: 800; font-size: 14px; color: #111827; }
+        .md-close {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: #f3f4f6;
+            border-radius: 999px;
+            color: #4b5563;
+            cursor: pointer;
+            transition: background-color 140ms ease, transform 140ms var(--pm-ease-out);
+        }
+        .md-close:hover { background: #e5e7eb; }
+        .md-close:active { transform: scale(0.95); }
+        .md-links { display: flex; flex-direction: column; padding: 8px; }
+        .md-links a {
+            display: block;
+            padding: 13px 12px;
+            border-radius: 0.75rem;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            text-decoration: none;
+            transition: background-color 140ms ease, color 140ms ease;
+        }
+        .md-links a:hover { background: #f5f3ff; color: #7c3aed; }
+        .md-links a:active { background: #ede9fe; }
+
+        /* ===== Cart drawer ===== */
+        .cd-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 70;
+            background: rgba(17, 24, 39, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 220ms var(--pm-ease-out), visibility 0s linear 220ms;
+        }
+        .cd-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 220ms var(--pm-ease-out), visibility 0s linear 0s;
+        }
+        .cd-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: min(430px, 100%);
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            box-shadow: -24px 0 60px rgba(17, 24, 39, 0.22);
+            transform: translateX(100%);
+            transition: transform 280ms var(--pm-ease-out);
+        }
+        .cd-overlay.is-open .cd-panel { transform: translateX(0); }
+        .cd-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 22px 22px 16px;
+            border-bottom: 1px solid #eef0f3;
+        }
+        .cd-head h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 800;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cd-count {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #7c3aed;
+            background: #f5f3ff;
+            border: 1px solid #ede9fe;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        .cd-close {
+            width: 38px;
+            height: 38px;
+            border: 0;
+            border-radius: 999px;
+            background: #f3f4f6;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 150ms ease, transform 150ms var(--pm-ease-out);
+        }
+        .cd-close:hover { background: #e5e7eb; color: #111827; }
+        .cd-close:active { transform: scale(0.94); }
+        .cd-list { flex: 1; overflow-y: auto; padding: 4px 22px; }
+        .cd-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #eef0f3;
+        }
+        .cd-item:last-child { border-bottom: 0; }
+        .cd-thumb {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            border-radius: 0.8rem;
+            object-fit: cover;
+            background: #f3f4f6;
+            border: 1px solid #f3f4f6;
+        }
+        .cd-main { flex: 1; min-width: 0; }
+        .cd-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .cd-unit { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+        .cd-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+        .cd-total-i { font-size: 13px; font-weight: 800; color: #7c3aed; white-space: nowrap; }
+        .cd-remove {
+            width: 30px;
+            height: 30px;
+            border: 0;
+            border-radius: 999px;
+            background: #fef2f2;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 140ms ease, transform 140ms var(--pm-ease-out);
+        }
+        .cd-remove:hover { background: #fee2e2; }
+        .cd-remove:active { transform: scale(0.9); }
+        .qty {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        .qty button {
+            width: 28px;
+            height: 28px;
+            border: 0;
+            background: none;
+            color: #6d28d9;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 140ms ease, transform 140ms var(--pm-ease-out);
+        }
+        .qty button:hover { background: #f5f3ff; }
+        .qty button:active { transform: scale(0.9); }
+        .qty span { min-width: 28px; text-align: center; font-size: 12.5px; font-weight: 700; color: #111827; }
+        .cd-empty { text-align: center; padding: 54px 10px; }
+        .cd-empty p { color: #6b7280; font-size: 13.5px; font-weight: 600; margin: 14px 0 4px; }
+        .cd-empty small { color: #9ca3af; font-size: 12px; }
+        .cd-foot { border-top: 1px solid #eef0f3; background: #faf9ff; padding: 16px 22px 22px; }
+        .cd-totalrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .cd-totalrow span { font-size: 13px; color: #6b7280; font-weight: 600; }
+        .cd-totalrow strong { font-size: 20px; font-weight: 800; color: #7c3aed; }
+        .cd-checkout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 999px;
+            background: #7c3aed;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 10px 24px rgba(124, 58, 237, 0.3);
+            transition: transform 160ms var(--pm-ease-out), background-color 160ms ease;
+        }
+        .cd-checkout:active { transform: scale(0.97); }
+        .cd-keep {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            border: 0;
+            background: none;
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px;
+            transition: color 150ms ease;
+        }
+        .cd-keep:hover { color: #111827; }
+        @media (hover: hover) and (pointer: fine) {
+            .cd-checkout:hover { background: #6d28d9; }
+        }
+
+        /* ===== Back to top ===== */
+        .btt {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 55;
+            width: 46px;
+            height: 46px;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 12px 28px rgba(124, 58, 237, 0.4);
+            opacity: 0;
+            transform: translateY(16px);
+            pointer-events: none;
+            transition: opacity 220ms var(--pm-ease-out), transform 220ms var(--pm-ease-out);
+        }
+        .btt.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .btt:active { transform: scale(0.94); }
+        @media (prefers-reduced-motion: reduce) {
+            .cd-panel { transition: none; }
+            .btt { transition: opacity 150ms linear; transform: none !important; }
+        }
+
+        /* ===== Page loader ===== */
+        .pl {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            transition: opacity 320ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 320ms;
+        }
+        .pl.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .pl-logo { width: 160px; height: 160px; object-fit: contain; }
+        .pl-ring {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 4px solid #ede9fe;
+            border-top-color: #7c3aed;
+            animation: plSpin 800ms linear infinite;
+        }
+        @keyframes plSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .pl-ring { animation: none; opacity: 0.45; }
+            .pl { transition: opacity 200ms linear, visibility 0s linear 200ms; }
+        }
+
+        /* ===== Product Detail Modal ===== */
+        :root {
+            --pm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+            --pm-ease-in: cubic-bezier(0.4, 0, 1, 1);
+        }
+        .pm-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(17, 24, 39, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 130ms var(--pm-ease-in), visibility 0s linear 120ms;
+        }
+        .pm-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 200ms var(--pm-ease-out), visibility 0s linear 0s;
+        }
+        .pm-stage {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            height: min(94vh, 960px);
+        }
+        .pm-modal {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 60px rgba(17, 24, 39, 0.28);
+            transform: scale(0.95);
+            opacity: 0;
+            transform-origin: center;
+            will-change: transform, opacity;
+            transition: transform 250ms var(--pm-ease-out), opacity 200ms var(--pm-ease-out);
+        }
+        .pm-overlay.is-open .pm-modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .pm-overlay:not(.is-open) .pm-modal {
+            transition-duration: 130ms, 110ms;
+            transition-timing-function: var(--pm-ease-in);
+        }
+        .pm-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 10;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #4b5563;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: transform 160ms var(--pm-ease-out), background-color 160ms ease, color 160ms ease;
+        }
+        .pm-close:active { transform: scale(0.94); }
+        .pm-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto minmax(0, 1fr);
+            align-items: stretch;
+            height: 100%;
+            overflow: hidden;
+        }
+        .pm-media {
+            position: relative;
+            margin: 14px 14px 0;
+            aspect-ratio: 4 / 3;
+            border-radius: 1.1rem;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+        @media (min-width: 640px) {
+            .pm-grid {
+                grid-template-columns: 46% minmax(0, 1fr);
+                grid-template-rows: minmax(0, 1fr);
+                align-items: stretch;
+            }
+            .pm-media {
+                aspect-ratio: auto;
+                min-height: 0;
+                margin: 16px;
+            }
+        }
+        .pm-info {
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
+            scrollbar-color: #d8b4fe transparent;
+        }
+        .pm-info::-webkit-scrollbar { width: 6px; }
+        .pm-info::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 999px; }
+        .pm-info::-webkit-scrollbar-track { background: transparent; }
+        .pm-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 14px;
+            box-sizing: border-box;
+            display: block;
+        }
+        .pm-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #7c3aed;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.35);
+        }
+        .pm-info { padding: 16px 18px 20px; }
+        .pm-kicker {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #7c3aed;
+            background: #f5f3ff;
+            border: 1px solid #ede9fe;
+            padding: 3px 9px;
+            border-radius: 999px;
+            margin-bottom: 8px;
+        }
+        .pm-title {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: #111827;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+        .pm-sub {
+            margin: 4px 0 0;
+            font-size: 12.5px;
+            color: #6b7280;
+        }
+        .pm-pricebar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 14px;
+            background: #faf9ff;
+            border: 1px solid #ede9fe;
+            border-radius: 1rem;
+        }
+        .pm-price-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: 2px;
+        }
+        .pm-price {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #111827;
+            line-height: 1.1;
+        }
+        .pm-switch {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            padding: 4px;
+            background: #f3f4f6;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+        }
+        .pm-switch-thumb {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
+            background: #ffffff;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            transition: transform 200ms var(--pm-ease-out);
+        }
+        .pm-switch[data-active="usd"] .pm-switch-thumb { transform: translateX(100%); }
+        .pm-switch-btn {
+            position: relative;
+            z-index: 1;
+            border: 0;
+            background: none;
+            padding: 7px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #6b7280;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: color 160ms ease, transform 160ms var(--pm-ease-out);
+        }
+        .pm-switch-btn:active { transform: scale(0.97); }
+        .pm-switch-btn.is-active { color: #6d28d9; }
+        .pm-rate {
+            margin: 8px 0 0;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .pm-rate[hidden] { display: none; }
+        .pm-actions {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .pm-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 0;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 700;
+            border-radius: 999px;
+            transition: transform 160ms var(--pm-ease-out), background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+        }
+        .pm-btn:active { transform: scale(0.97); }
+        .pm-buy {
+            flex: 1;
+            padding: 13px 20px;
+            color: #fff;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            box-shadow: 0 10px 22px rgba(124, 58, 237, 0.32);
+        }
+        .pm-share {
+            padding: 13px 18px;
+            background: #f5f3ff;
+            color: #6d28d9;
+            border: 1px solid #ddd6fe;
+        }
+        .pm-share-wrap { position: relative; }
+        .pm-share-pop {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            right: 0;
+            width: 232px;
+            padding: 6px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 1.1rem;
+            box-shadow: 0 18px 40px rgba(17, 24, 39, 0.18);
+            transform-origin: bottom right;
+            transform: scale(0.96) translateY(6px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: transform 180ms var(--pm-ease-out), opacity 160ms var(--pm-ease-out), visibility 0s linear 180ms;
+        }
+        .pm-share-pop.is-open {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: transform 200ms var(--pm-ease-out), opacity 180ms var(--pm-ease-out), visibility 0s linear 0s;
+        }
+        .pm-social {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 10px;
+            border: 0;
+            background: none;
+            border-radius: 0.75rem;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            text-decoration: none;
+            cursor: pointer;
+            text-align: left;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 200ms var(--pm-ease-out), transform 200ms var(--pm-ease-out), background-color 140ms ease;
+        }
+        .pm-share-pop:not(.is-open) .pm-social { transition-delay: 0ms; }
+        .pm-share-pop.is-open .pm-social { opacity: 1; transform: translateY(0); }
+        .pm-share-pop.is-open .pm-social:nth-child(2) { transition-delay: 40ms; }
+        .pm-share-pop.is-open .pm-social:nth-child(3) { transition-delay: 80ms; }
+        .pm-share-pop.is-open .pm-social:nth-child(4) { transition-delay: 120ms; }
+        .pm-share-pop.is-open .pm-social:nth-child(5) { transition-delay: 160ms; }
+        .pm-social svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .pm-fav {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #f3e8ff;
+            background: #fdf4ff;
+            color: #9ca3af;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: transform 160ms var(--pm-ease-out), background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+        }
+        .pm-fav:active { transform: scale(0.94); }
+        .pm-fav.is-active {
+            background: #f5f3ff;
+            border-color: #ddd6fe;
+            color: #7c3aed;
+        }
+        .pm-fav.is-active svg { fill: #7c3aed; }
+        @keyframes pmHeartPop {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.22); }
+            100% { transform: scale(1); }
+        }
+        .pm-fav.pop svg { animation: pmHeartPop 220ms var(--pm-ease-out); }
+        .pm-acc-list { margin-top: 18px; }
+        .pm-acc { border-top: 1px solid #e5e7eb; }
+        .pm-acc:last-child { border-bottom: 1px solid #e5e7eb; }
+        .pm-acc-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 0;
+            border: 0;
+            background: none;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #111827;
+            cursor: pointer;
+            transition: color 140ms ease, transform 160ms var(--pm-ease-out);
+        }
+        .pm-acc-head:active { transform: scale(0.99); }
+        .pm-chevron {
+            width: 16px;
+            height: 16px;
+            color: #7c3aed;
+            flex-shrink: 0;
+            transition: transform 200ms var(--pm-ease-out);
+        }
+        .pm-acc.is-open .pm-chevron { transform: rotate(180deg); }
+        .pm-acc-panel {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 250ms var(--pm-ease-out);
+        }
+        .pm-acc.is-open .pm-acc-panel { grid-template-rows: 1fr; }
+        .pm-acc-panel > div { overflow: hidden; min-height: 0; }
+        .pm-text {
+            margin: 0;
+            padding-bottom: 14px;
+            font-size: 13px;
+            line-height: 1.65;
+            color: #4b5563;
+        }
+        .pm-text.is-scroll {
+            overflow: visible;
+            padding-right: 0;
+        }
+        .pm-text p { margin: 0 0 10px; }
+        .pm-text p:last-child { margin-bottom: 0; }
+        .pm-specs { margin: 0; padding-bottom: 6px; }
+        .pm-specs > div {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 9px 0;
+            border-bottom: 1px dashed #e5e7eb;
+            font-size: 12.5px;
+        }
+        .pm-specs > div:last-child { border-bottom: 0; }
+        .pm-specs dt { color: #6b7280; }
+        .pm-specs dd {
+            margin: 0;
+            font-weight: 600;
+            color: #111827;
+            text-align: right;
+        }
+        @media (min-width: 640px) {
+            .pm-info { padding: 22px 26px 26px; }
+            .pm-title { font-size: 1.2rem; }
+            .pm-price { font-size: 1.85rem; }
+            .pm-text { font-size: 13.5px; }
+            .pm-specs > div { font-size: 13px; padding: 10px 0; }
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .pm-close:hover { background: #ffffff; color: #111827; }
+            .pm-buy:hover { box-shadow: 0 14px 28px rgba(124, 58, 237, 0.4); }
+            .pm-share:hover { background: #ede9fe; }
+            .pm-fav:hover { border-color: #ddd6fe; color: #7c3aed; }
+            .pm-acc-head:hover { color: #6d28d9; }
+            .pm-social:hover { background: #f5f3ff; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .pm-modal { transform: none !important; transition: opacity 120ms linear; }
+            .pm-overlay, .pm-overlay.is-open { transition: opacity 120ms linear, visibility 0s; }
+            .pm-switch-thumb, .pm-acc-panel, .pm-chevron { transition: none; }
+            .pm-btn, .pm-close, .pm-fav, .pm-acc-head, .pm-switch-btn { transition: background-color 120ms ease, color 120ms ease; }
+            .pm-btn:active, .pm-close:active, .pm-fav:active, .pm-acc-head:active, .pm-switch-btn:active { transform: none; }
+            .pm-share-pop { transform: none !important; transition: opacity 120ms linear, visibility 0s; }
+            .pm-social { transform: none; transition: opacity 120ms linear, background-color 120ms ease; }
+            .pm-fav.pop svg { animation: none; }
+        }
+    </style>
+    <style>
+        /* ===== Combos (slider) ===== */
+        .combo-slider { position: relative; display: flex; align-items: center; gap: 8px; }
+        .combo-viewport {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            padding: 4px 2px 10px;
+        }
+        .combo-viewport.is-scrolling { scroll-behavior: auto; }
+        .combo-track { display: flex; gap: 16px; padding: 6px 2px; }
+        .combo-card {
+            position: relative;
+            flex: 0 0 auto;
+            width: 86%;
+            scroll-snap-align: start;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(229, 231, 235, 0.9);
+            border-radius: 1.5rem;
+            padding: 16px 16px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .combo-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle 140px at var(--mouse-x, 50%) var(--mouse-y, 50%), color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 28%, transparent), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .combo-card:hover::before { opacity: 1; }
+        .combo-card:hover { border-color: color-mix(in srgb, var(--gh-fx-hover, #7c3aed) 60%, transparent); transform: translateY(-4px); box-shadow: 0 15px 35px color-mix(in srgb, var(--gh-fx-glow, var(--gh-fx-hover, #7c3aed)) 18%, transparent); }
+        .combo-card > * { position: relative; z-index: 1; }
+        .combo-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .combo-cpu { display: flex; flex-direction: column; line-height: 1.05; }
+        .combo-cpu-line1 { font-size: 16px; font-weight: 800; color: #111827; letter-spacing: -0.01em; }
+        .combo-cpu-line2 { font-size: 14px; font-weight: 700; color: #7c3aed; margin-top: 1px; }
+        .combo-tag {
+            flex-shrink: 0;
+            font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+            color: #7c3aed; background: #f5f3ff; border: 1px solid #ede9fe;
+            padding: 3px 9px; border-radius: 999px;
+        }
+        .combo-main { display: flex; align-items: center; gap: 14px; }
+        .combo-imgwrap {
+            position: relative;
+            flex: 0 0 auto;
+            width: 44%;
+            max-width: 190px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .combo-imgwrap img { width: 100%; height: 100%; object-fit: contain; }
+        .combo-imgwrap img.combo-extra {
+            position: absolute;
+            right: -6%;
+            bottom: -2%;
+            width: 58%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+            pointer-events: none;
+        }
+        .combo-specs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; min-width: 0; }
+        .combo-specs li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: #374151; overflow-wrap: anywhere; }
+        .combo-specs li::before { content: ''; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 999px; background: #a855f7; }
+        .combo-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 12px; border-top: 1px solid #f1f2f4; }
+        .combo-price { font-size: 18px; font-weight: 800; color: #111827; }
+        .combo-add {
+            width: 38px; height: 38px; flex-shrink: 0;
+            border-radius: 999px; border: 0; cursor: pointer;
+            background: #f5f3ff; color: #7c3aed;
+            display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.18s ease, color 0.18s ease, transform 0.14s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .combo-add:hover { background: #7c3aed; color: #fff; }
+        .combo-add:active { transform: scale(0.92); }
+        .combo-add svg { width: 18px; height: 18px; }
+        .combo-nav {
+            flex: 0 0 auto;
+            width: 42px; height: 42px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.95);
+            color: #374151;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.18s ease, color 0.18s ease, opacity 0.18s ease, transform 0.14s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 2;
+        }
+        .combo-nav:hover { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+        .combo-nav:active { transform: scale(0.92); }
+        .combo-nav[disabled] { opacity: 0.3; cursor: default; pointer-events: none; }
+        .combo-nav svg { width: 20px; height: 20px; }
+        .combo-slider.is-static .combo-nav,
+        .combo-slider.is-static .combo-dots { display: none; }
+        .combo-dots { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; }
+        .combo-dot {
+            width: 8px; height: 8px; padding: 0;
+            border-radius: 999px; border: 0; cursor: pointer;
+            background: #d8dbe0;
+            transition: width 0.22s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.22s ease;
+        }
+        .combo-dot.is-active { width: 22px; background: #7c3aed; }
+
+        /* ===== Combo modal ===== */
+        .cm-cpu { display: flex; flex-direction: column; line-height: 1.05; margin-bottom: 8px; }
+        .cm-cpu1 { font-size: 18px; font-weight: 800; color: #111827; letter-spacing: -0.01em; }
+        .cm-cpu2 { font-size: 15px; font-weight: 700; color: #7c3aed; margin-top: 1px; }
+        .pm-media img.cm-media-extra {
+            position: absolute;
+            right: 5%;
+            bottom: 7%;
+            width: 38%;
+            height: auto;
+            padding: 0;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22));
+            pointer-events: none;
+        }
+        .cm-includes { margin-top: 18px; }
+        .cm-includes h4 { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; margin: 0 0 10px; }
+        .cm-includes ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+        .cm-includes li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; color: #374151; }
+        .cm-includes li svg { width: 16px; height: 16px; flex-shrink: 0; color: #7c3aed; }
+        @media (max-width: 639.98px) {
+            .combo-card { width: 90%; }
+            .combo-track { gap: 12px; }
+            .combo-nav { width: 36px; height: 36px; }
+            .combo-nav svg { width: 18px; height: 18px; }
+            .combo-imgwrap { width: 40%; }
+            .combo-price { font-size: 16px; }
+        }
+        @media (min-width: 640px) { .combo-card { width: 46%; } }
+        @media (min-width: 1024px) { .combo-card { width: 31%; } }
+        @media (prefers-reduced-motion: reduce) {
+            .combo-viewport { scroll-behavior: auto; }
+            .combo-card, .combo-card::before, .combo-add, .combo-nav, .combo-dot { transition: none; }
+            .combo-card:hover { transform: none; }
+        }
+
+        /* ===== Product modal: pantalla completa + ruta de categoria ===== */
+        .pm-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
+        .pm-stage { max-width: none; width: 100%; height: 100%; }
+        .pm-modal { display: flex; flex-direction: column; border-radius: 0; box-shadow: none; }
+        .pm-crumbs {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 50px;
+            padding: 13px 62px 13px 18px;
+            border-bottom: 1px solid #eef0f3;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .pm-crumb-cat { color: #7c3aed; font-weight: 800; }
+        .pm-crumb-sub { color: #6d28d9; font-weight: 700; }
+        .pm-crumb-sep { color: #c7cad1; }
+        .pm-crumb-current { color: #111827; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+        .pm-crumb-cat.is-link, .pm-crumb-sub.is-link { cursor: pointer; border-radius: 7px; padding: 2px 7px; margin: -2px -7px; transition: background-color 130ms ease, color 130ms ease, transform 130ms cubic-bezier(0.23, 1, 0.32, 1); }
+        .pm-crumb-cat.is-link:hover, .pm-crumb-sub.is-link:hover { background: #f1ecfe; }
+        .pm-crumb-cat.is-link:active, .pm-crumb-sub.is-link:active { transform: scale(0.96); }
+        .pm-crumb-cat.is-link:focus-visible, .pm-crumb-sub.is-link:focus-visible { outline: 2px solid #a855f7; outline-offset: 1px; }
+        .pm-crumb-cat[hidden], .pm-crumb-sub[hidden], .pm-crumb-sep[hidden] { display: none; }
+        .pm-grid { flex: 1 1 auto; min-height: 0; height: auto; }
+        @media (min-width: 1280px) {
+            .pm-crumbs { font-size: 13px; min-height: 58px; padding: 16px 64px 16px 30px; }
+            .pm-info { padding: 30px 42px 42px; }
+            .pm-kicker { font-size: 11px; }
+            .pm-title { font-size: 1.6rem; }
+            .pm-sub { font-size: 14.5px; }
+            .pm-price-label { font-size: 11px; }
+            .pm-price { font-size: 2.3rem; }
+            .pm-switch-btn { font-size: 13px; }
+            .pm-rate { font-size: 12px; }
+            .pm-btn { font-size: 15px; }
+            .pm-buy { padding: 15px 22px; }
+            .pm-share { padding: 15px 20px; }
+            .pm-acc-head { font-size: 14.5px; padding: 16px 0; }
+            .pm-text { font-size: 15px; }
+            .pm-specs > div { font-size: 14.5px; padding: 12px 0; }
+            .pm-badge { font-size: 11px; padding: 5px 12px; }
+            .pm-close { top: 16px; right: 16px; width: 44px; height: 44px; }
+        }
+        @media (min-width: 1650px) {
+            .pm-crumbs { font-size: 14px; }
+            .pm-info { padding: 40px 58px 54px; }
+            .pm-title { font-size: 1.9rem; }
+            .pm-sub { font-size: 16px; }
+            .pm-price { font-size: 2.7rem; }
+            .pm-btn { font-size: 16px; }
+            .pm-acc-head { font-size: 15.5px; }
+            .pm-text { font-size: 16px; }
+            .pm-specs > div { font-size: 15.5px; padding: 13px 0; }
+        }
+    </style>
+    <link rel="stylesheet" href="assets/css/tailwind.css">
+</head>
+<body id="inicio" class="w-full relative" style="scroll-padding-top: 5rem;">
+
+    <!-- Page loader -->
+    <div id="pageLoader" class="pl" aria-hidden="true">
+        <img src="assets/img/logos/logo2.webp" alt="MANIAWORLD" class="pl-logo" onerror="this.src='https://placehold.co/400x400/ffffff/7c3aed?text=GigaHertz'" loading="eager" decoding="async">
+        <div class="pl-ring"></div>
+    </div>
+    <script>
+        (function () {
+            var loader = document.getElementById('pageLoader');
+            var start = Date.now();
+            document.body.style.overflow = 'hidden';
+            function hide() {
+                loader.classList.add('is-done');
+                document.body.style.overflow = '';
+                setTimeout(function () {
+                    if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+                }, 450);
+            }
+            function finish() {
+                var remain = 3000 - (Date.now() - start);
+                if (remain > 0) setTimeout(hide, remain);
+                else hide();
+            }
+            if (document.readyState === 'complete') finish();
+            else window.addEventListener('load', finish);
+        })();
+    </script>
+
+
+    <div id="canvasContainer">
+        <img id="heroBg" alt="" aria-hidden="true" decoding="async">
+        <div id="heroOverlay" aria-hidden="true"></div>
+        <canvas id="hexCanvas"></canvas>
+
+        <!-- Destellos morados en las esquinas del canvas -->
+        <div class="hero-glow" aria-hidden="true"></div>
+
+        <!-- Center Logo -->
+        <div class="hero-logo absolute inset-0 flex items-center justify-center z-10 pointer-events-none p-4 pb-36">
+            <img src="assets/img/logos/logo2.webp" alt="MANIAWORLD" class="hero-logo-img h-auto object-contain drop-shadow-xl pointer-events-auto transition-transform duration-300 hover:scale-105" onerror="this.src='https://placehold.co/400x400/ffffff/7c3aed?text=GigaHertz'" loading="eager" decoding="async" fetchpriority="high">
+        </div>
+
+        <!-- Bottom Category Slider Bar -->
+        <div class="absolute bottom-0 left-0 w-full z-20 category-strip py-4 px-4 sm:px-6 flex items-center justify-between gap-3">
+            <button id="slideLeft" class="p-3 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md border border-gray-200 transition-all flex-shrink-0 active:scale-95 z-10" title="Anterior">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            
+            <div class="slider-viewport overflow-hidden flex-grow relative no-scrollbar">
+                <div id="categorySlider" class="flex items-center space-x-5 animate-marquee">
+                    <!-- Dynamically populated category cards -->
+                </div>
+            </div>
+
+            <button id="slideRight" class="p-3 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md border border-gray-200 transition-all flex-shrink-0 active:scale-95 z-10" title="Siguiente">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 w-full h-16 z-30 flex items-center justify-between px-4 sm:px-8 border-b border-gray-200/40 pointer-events-auto" style="background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 70%, rgba(255, 255, 255, 0) 100%); backdrop-filter: blur(8px);">
+        <div class="flex items-center space-x-8 flex-shrink-0">
+            <a href="#" class="flex items-center space-x-2">
+                <span class="font-bold text-gray-900 tracking-wide text-sm sm:text-base">MANIAWORLD</span>
+            </a>
+        </div>
+
+        <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-700 absolute left-1/2 -translate-x-1/2">
+            <a href="#inicio" class="hover:text-purple-600 transition-colors">Inicio</a>
+                            <a href="catalogo.html" id="navProductos" class="hover:text-purple-600 transition-colors">Productos</a>
+                <a href="#productos" class="js-cat-nav hover:text-purple-600 transition-colors cursor-pointer">Categorias</a>
+            <a href="ubicacion.html" class="hover:text-purple-600 transition-colors">Ubicación</a>
+            <a href="contacto.html" class="hover:text-purple-600 transition-colors">Contacto</a>
+        </div>
+
+        <div class="flex items-center space-x-2 sm:space-x-3 text-gray-800">
+            <button class="p-2 rounded-full hover:bg-gray-200/60 transition-colors" title="Buscar">
+                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button id="likeBtn" class="p-2 rounded-full hover:bg-gray-200/60 transition-colors" title="Me gusta">
+                <svg id="likeIcon" class="w-5 h-5 text-gray-700 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+            <button id="navCart" class="p-2 rounded-full hover:bg-gray-200/60 transition-colors relative" title="Carrito">
+                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span id="cartCount" class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center justify-center shadow-md" hidden>0</span>
+            </button>
+            <button id="soundToggle" class="p-2 rounded-full hover:bg-gray-200/60 transition-colors" title="Sonido">
+                <svg id="soundIcon" class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </button>
+            <button id="navBurger" class="lg:hidden p-2 rounded-full hover:bg-gray-200/60 transition-colors" title="Menú" aria-label="Abrir menú">
+                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Combos Section -->
+    <section id="combos" class="py-8 px-0 sm:px-8 sm:py-16 bg-white/80 backdrop-blur-md border-t border-gray-200 relative z-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col items-center mb-6 sm:mb-10 text-center px-4">
+                <span class="text-purple-600 font-bold text-xs uppercase tracking-widest mb-2 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">Arma y ahorra</span>
+                <h3 class="text-xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Combos Mania</h3>
+                <p class="text-gray-500 text-sm mt-1 max-w-md">Equipos listos para jugar y trabajar. Elige el tuyo y llévalo completo.</p>
+            </div>
+
+            <div class="px-2 sm:px-0">
+                <div class="combo-slider">
+                    <button class="combo-nav combo-prev" type="button" aria-label="Anterior" title="Anterior">
+                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+
+                    <div class="combo-viewport no-scrollbar" id="comboViewport">
+                        <div class="combo-track" id="comboTrack">
+                            <!-- Combo 1 -->
+                            <article class="combo-card" data-name="Combo Gamer Intel i5" data-price="499" data-img="assets/img/combos/case1.webp" data-cat="Combos" data-subcat="PC de Escritorio">
+                                <div class="combo-top">
+                                    <div class="combo-cpu">
+                                        <span class="combo-cpu-line1">Intel Core</span>
+                                        <span class="combo-cpu-line2">i5 - 7Gen</span>
+                                    </div>
+                                    <span class="combo-tag">Combo</span>
+                                </div>
+                                <div class="combo-main">
+                                    <div class="combo-imgwrap">
+                                        <img class="combo-case" src="assets/img/combos/case1.webp" alt="Gabinete del combo" onerror="this.onerror=null;this.src='https://placehold.co/600x600/f9fafb/7c3aed?text=Gabinete';" loading="lazy" decoding="async">
+                                    </div>
+                                    <ul class="combo-specs">
+                                        <li>12GB DDR4</li>
+                                        <li>256GB SSD M.2</li>
+                                        <li>GTX 1660 Super</li>
+                                    </ul>
+                                </div>
+                                <div class="combo-foot">
+                                    <span class="combo-price">$499.00</span>
+                                    <button class="combo-add" type="button" title="Agregar al carrito" aria-label="Agregar al carrito">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                    </button>
+                                </div>
+                            </article>
+
+                            <!-- Combo 2 -->
+                            <article class="combo-card" data-name="Combo Ryzen 5" data-price="649" data-img="assets/img/combos/case2.webp" data-cat="Combos" data-subcat="PC de Escritorio">
+                                <div class="combo-top">
+                                    <div class="combo-cpu">
+                                        <span class="combo-cpu-line1">AMD Ryzen</span>
+                                        <span class="combo-cpu-line2">5 - 5600G</span>
+                                    </div>
+                                    <span class="combo-tag">Combo</span>
+                                </div>
+                                <div class="combo-main">
+                                    <div class="combo-imgwrap">
+                                        <img class="combo-case" src="assets/img/combos/case2.webp" alt="Gabinete del combo" onerror="this.onerror=null;this.src='https://placehold.co/600x600/f9fafb/7c3aed?text=Gabinete';" loading="lazy" decoding="async">
+                                    </div>
+                                    <ul class="combo-specs">
+                                        <li>16GB DDR4</li>
+                                        <li>512GB SSD M.2</li>
+                                        <li>RTX 3050</li>
+                                    </ul>
+                                </div>
+                                <div class="combo-foot">
+                                    <span class="combo-price">$649.00</span>
+                                    <button class="combo-add" type="button" title="Agregar al carrito" aria-label="Agregar al carrito">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                    </button>
+                                </div>
+                            </article>
+
+                            <!-- Combo 3 -->
+                            <article class="combo-card" data-name="Combo Intel i7 DDR5" data-price="949" data-img="assets/img/combos/case3.webp" data-cat="Combos" data-subcat="PC de Escritorio">
+                                <div class="combo-top">
+                                    <div class="combo-cpu">
+                                        <span class="combo-cpu-line1">Intel Core</span>
+                                        <span class="combo-cpu-line2">i7 - 12Gen</span>
+                                    </div>
+                                    <span class="combo-tag">Combo</span>
+                                </div>
+                                <div class="combo-main">
+                                    <div class="combo-imgwrap">
+                                        <img class="combo-case" src="assets/img/combos/case3.webp" alt="Gabinete del combo" onerror="this.onerror=null;this.src='https://placehold.co/600x600/f9fafb/7c3aed?text=Gabinete';" loading="lazy" decoding="async">
+                                    </div>
+                                    <ul class="combo-specs">
+                                        <li>16GB DDR5</li>
+                                        <li>1TB SSD M.2</li>
+                                        <li>RTX 4060</li>
+                                    </ul>
+                                </div>
+                                <div class="combo-foot">
+                                    <span class="combo-price">$949.00</span>
+                                    <button class="combo-add" type="button" title="Agregar al carrito" aria-label="Agregar al carrito">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                    </button>
+                                </div>
+                            </article>
+
+                            <!-- Combo 4 -->
+                            <article class="combo-card" data-name="Combo Ryzen 7 Pro" data-price="1399" data-img="assets/img/combos/case4.webp" data-cat="Combos" data-subcat="PC de Escritorio">
+                                <div class="combo-top">
+                                    <div class="combo-cpu">
+                                        <span class="combo-cpu-line1">AMD Ryzen</span>
+                                        <span class="combo-cpu-line2">7 - 7800X3D</span>
+                                    </div>
+                                    <span class="combo-tag">Combo</span>
+                                </div>
+                                <div class="combo-main">
+                                    <div class="combo-imgwrap">
+                                        <img class="combo-case" src="assets/img/combos/case4.webp" alt="Gabinete del combo" onerror="this.onerror=null;this.src='https://placehold.co/600x600/f9fafb/7c3aed?text=Gabinete';" loading="lazy" decoding="async">
+                                        <img class="combo-extra" src="assets/img/products/p-4.webp" alt="Incluye monitor" onerror="this.onerror=null;this.src='https://placehold.co/300x300/f9fafb/7c3aed?text=Monitor';" loading="lazy" decoding="async">
+                                    </div>
+                                    <ul class="combo-specs">
+                                        <li>Monitor 24" 165Hz</li>
+                                        <li>32GB DDR5</li>
+                                        <li>1TB SSD M.2</li>
+                                        <li>RTX 4070 Super</li>
+                                    </ul>
+                                </div>
+                                <div class="combo-foot">
+                                    <span class="combo-price">$1,399.00</span>
+                                    <button class="combo-add" type="button" title="Agregar al carrito" aria-label="Agregar al carrito">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                    </button>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+
+                    <button class="combo-nav combo-next" type="button" aria-label="Siguiente" title="Siguiente">
+                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                </div>
+
+                <div class="combo-dots" id="comboDots" role="tablist" aria-label="Combos"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section (25 Products) -->
+    <div id="productos" class="scroll-mt-20"></div>
+    <section id="lo-mas-vendido" class="py-8 px-0 sm:px-8 sm:py-16 bg-white/80 backdrop-blur-md border-t border-gray-200 relative z-20">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col items-center mb-6 sm:mb-10 text-center px-4">
+                <span class="text-purple-600 font-bold text-xs uppercase tracking-widest mb-2 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">Tendencias del Mes</span>
+                <h3 class="text-xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Lo Más Vendido & Catálogo Destacado</h3>
+                <p class="text-gray-500 text-sm mt-1 max-w-md">Los equipos y componentes preferidos por nuestra comunidad en zulia y toda Venezuela.</p>
+            </div>
+
+            <div id="homeGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 px-2 sm:px-0">
+                <!-- Product 1 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Tarjetas de Video">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-1.webp" alt="Tarjeta Gráfica RTX 4070" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                            <span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">Top Ventas</span>
+                        </div>
+                        <h4 class="product-name">Tarjeta Gráfica NVIDIA GeForce RTX 4070 Super 12GB GDDR6X Gaming</h4>
+                        <p class="product-sub">12GB GDDR6X Gaming</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$799.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </button>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Procesadores">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-2.webp" alt="Procesador AMD Ryzen 7" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                            <span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">Destacado</span>
+                        </div>
+                        <h4 class="product-name">Procesador AMD Ryzen 7 7800X3D de 8 Núcleos 16 Hilos hasta 5.0GHz AM5</h4>
+                        <p class="product-sub">AM5 8 Nucleos 5.0GHz</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$389.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </button>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Periféricos" data-subcat="Teclados">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-3.webp" alt="Teclado Mecánico RGB Pro" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                            <span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">Popular</span>
+                        </div>
+                        <h4 class="product-name">Teclado Mecánico Gamer RGB Pro con Switches Red Hot-Swap y RGB por Tecla</h4>
+                        <p class="product-sub">Switches Red Hot-Swap</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$79.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </button>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Computadoras" data-subcat="Monitores">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-4.webp" alt="Monitor Gamer Curvo 27" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                            <span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">Oferta</span>
+                        </div>
+                        <h4 class="product-name">Monitor Gamer Curvo 27" Samsung Odyssey G5 180Hz QHD 2560x1440 1ms FreeSync Premium</h4>
+                        <p class="product-sub">IPS 1ms FreeSync Premium</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$269.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </button>
+                </div>
+
+                <!-- Product 5 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Periféricos" data-subcat="Audífonos">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-5.webp" alt="Audífonos Gamer 7.1" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                            <span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">Nuevo</span>
+                        </div>
+                        <h4 class="product-name">Audífonos Gamer 7.1 Surround</h4>
+                        <p class="product-sub">RGB Micrófono Reducción Ruido</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$65.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </button>
+                </div>
+
+                <!-- Product 6 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Tarjetas de Video">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/ZOTAC_Gaming%27s_GeForce_RTX_50_Series_Graphics_Carda.jpg/500px-ZOTAC_Gaming%27s_GeForce_RTX_50_Series_Graphics_Carda.jpg" alt="RTX 4060 Ti" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Tarjeta Gráfica NVIDIA GeForce RTX 4060 Ti 8GB GDDR6 con DLSS 3 y Ray Tracing</h4>
+                        <p class="product-sub">8GB GDDR6 DLSS 3</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$399.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 7 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Procesadores">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-7.webp" alt="Core i7-14700K" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Procesador Intel Core i7-14700K de 20 Núcleos hasta 5.6GHz Socket LGA1700</h4>
+                        <p class="product-sub">LGA1700 20 Nucleos 5.6GHz</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$409.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 8 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Tarjetas Madre Intel">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-8.webp" alt="Z790 Motherboard" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Tarjeta Madre ASUS ROG Strix Z790-A Gaming WiFi DDR5 LGA1700 con Wi-Fi 6E</h4>
+                        <p class="product-sub">DDR5 Wi-Fi 6E LGA1700</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$329.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 9 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Memorias Ram DDR5">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-9.webp" alt="RAM 32GB" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Memoria RAM Corsair Vengeance RGB 32GB DDR5 6000MHz CL30 Kit 2x16GB</h4>
+                        <p class="product-sub">Kit 2x16GB 6000MHz CL30</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$119.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 10 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="SSD M.2">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/75/Samsung_980_PRO_PCIe_4.0_NVMe_SSD_1TB-top_PNr%C2%B00915.jpg/500px-Samsung_980_PRO_PCIe_4.0_NVMe_SSD_1TB-top_PNr%C2%B00915.jpg" alt="SSD 2TB" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">SSD M.2 NVMe Samsung 990 PRO 2TB PCIe 4.0 Lectura hasta 7450 MB/s</h4>
+                        <p class="product-sub">Lectura hasta 7450 MB/s</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$179.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 11 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Fuentes de Poder">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-11.webp" alt="PSU 850W" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Fuente de Poder Corsair RM850x 850W 80 Plus Gold Totalmente Modular</h4>
+                        <p class="product-sub">80 Plus Gold Modular</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$139.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 12 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Cases">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-12.webp" alt="Case Lian Li" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Gabinete Lian Li O11 Dynamic EVO con Vidrio Templado Dual Chamber</h4>
+                        <p class="product-sub">Vidrio Templado Dual Chamber</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$169.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 13 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Componentes" data-subcat="Enfriamiento">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-13.webp" alt="Enfriamiento Líquido" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Refrigeración Líquida NZXT Kraken 360 RGB AIO para Procesador</h4>
+                        <p class="product-sub">RGB AIO Liquid Cooler</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$189.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 14 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Periféricos" data-subcat="Mouses">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-14.webp" alt="Mouse Superlight" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Mouse Inalámbrico Logitech G Pro X Superlight 2 de 63g con Sensor HERO</h4>
+                        <p class="product-sub">Mouse Inalámbrico 63g</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$149.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 15 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Periféricos" data-subcat="Sillas Gamer">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-15.webp" alt="Silla Gamer" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Silla Gamer Secretlab Titan Evo Ergonómica en Cuero PU Talla Regular</h4>
+                        <p class="product-sub">Ergonómica Cuero PU</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$549.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 16 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Laptops" data-subcat="Laptops">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-16.webp" alt="Laptop Gamer" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Laptop Gamer ASUS ROG Strix G16 Intel Core i7 RTX 4060 Pantalla 16" 240Hz</h4>
+                        <p class="product-sub">i7 RTX 4060 16" 240Hz</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$1,399.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 17 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Computadoras" data-subcat="Monitores">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-17.webp" alt="Monitor 24" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Monitor Gamer 24" AOC 24G2SPE 165Hz IPS FHD 1920x1080 1ms FreeSync</h4>
+                        <p class="product-sub">FHD 1ms FreeSync</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$159.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 18 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Periféricos" data-subcat="Micrófonos">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Blue_Yeti_Blackout_USB_microphone_%2851844234538%29.jpg/500px-Blue_Yeti_Blackout_USB_microphone_%2851844234538%29.jpg" alt="QuadCast S" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Micrófono HyperX QuadCast S USB Condensador con RGB y Antipop</h4>
+                        <p class="product-sub">USB Condensador RGB</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$159.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 19 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Periféricos" data-subcat="Controles/Volantes">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-19.webp" alt="Control Xbox" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Control Inalámbrico Microsoft Xbox Series X Carbon Black para PC y Consola</h4>
+                        <p class="product-sub">Carbon Black PC / Console</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$69.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 20 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Impresión" data-subcat="Router y Mesh">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-20.webp" alt="Router WiFi 6" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Router ASUS RT-AX82U WiFi 6 Gaming con Iluminación AURA RGB</h4>
+                        <p class="product-sub">Gaming Router AURA RGB</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$199.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 21 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Computadoras" data-subcat="UPS / Respaldo Eléctrico">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-21.webp" alt="UPS 1500VA" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">UPS APC Back-UPS 1500VA de Respaldo Eléctrico Automático con Regulación</h4>
+                        <p class="product-sub">Respaldo Eléctrico Automático</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$219.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 22 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Periféricos" data-subcat="Webcam">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-22.webp" alt="Webcam C920" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Cámara Web Logitech C920 HD Pro 1080p con Micrófono Estéreo</h4>
+                        <p class="product-sub">1080p Streaming & Calls</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$79.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 23 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Impresión" data-subcat="Impresoras">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-23.webp" alt="Impresora EcoTank" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Impresora Epson EcoTank L3250 Multifuncional WiFi con Botellas de Tinta</h4>
+                        <p class="product-sub">Multifuncional WiFi Botellas</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$249.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 24 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Impresión" data-subcat="Accesorios">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="https://live.staticflickr.com/688/33264146426_fde684e26e_b.jpg" alt="Kit iFixit" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Kit de Herramientas iFixit Pro Tech Toolkit para Reparación de PCs y Laptops</h4>
+                        <p class="product-sub">Reparación PCs y Laptops</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$49.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+
+                <!-- Product 25 -->
+                <div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group" data-cat="Laptops" data-subcat="Accesorios">
+                    <div class="relative z-10">
+                        <div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <img src="assets/img/products/p-25.webp" alt="Base Cooling" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+                        </div>
+                        <h4 class="product-name">Base Refrigerante para Laptop RGB 17" con Ventiladores Silenciosos</h4>
+                        <p class="product-sub">Ventiladores Silenciosos 17"</p>
+                    </div>
+                    <div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-gray-900 font-extrabold text-base">$35.00</span>
+                    </div>
+                    <button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></button>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-10">
+                <a href="catalogo.html" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm tracking-wide shadow-lg shadow-purple-600/30 transition-all duration-200 active:scale-[0.97]">
+                    Ver más
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+            </div>
+
+            <!-- FAQ -->
+            <div class="faq-wrap">
+                <div class="flex flex-col items-center mb-8 text-center">
+                    <span class="text-purple-600 font-bold text-xs uppercase tracking-widest mb-2 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">Ayuda rápida</span>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Preguntas Frecuentes</h3>
+                    <p class="text-gray-500 text-sm mt-1 max-w-md">Todo lo que necesitas saber antes de comprar en MANIAWORLD.</p>
+                </div>
+
+                <div class="faq-card">
+                    <div class="faq-item">
+                        <button class="faq-head" type="button" aria-expanded="false">
+                            <span>¿Realizan envíos a toda Venezuela?</span>
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="faq-panel"><div><p class="faq-answer">Sí. Despachamos a zulia (24-48h), Valencia y Maracaibo (48-72h) y al resto del país en 3 a 5 días hábiles. El envío es gratis en compras superiores a $100 y también ofrecemos recolección en tienda sin costo adicional.</p></div></div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button class="faq-head" type="button" aria-expanded="false">
+                            <span>¿Qué medios de pago aceptan?</span>
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="faq-panel"><div><p class="faq-answer">Aceptamos transferencia bancaria, Pago Móvil, Zelle, tarjetas de crédito y débito, y pago contra entrega en zonas cubiertas. Todos los precios se muestran en dólares y puedes consultar el precio de referencia en bolívares desde la ficha de cada producto.</p></div></div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button class="faq-head" type="button" aria-expanded="false">
+                            <span>¿Los productos tienen garantía?</span>
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="faq-panel"><div><p class="faq-answer">Todo producto nuevo incluye 12 meses de garantía por fallas de fabricación, con soporte directo de nuestro equipo técnico en zulia. Los equipos repotenciados incluyen 6 meses de garantía y se detallan en la ficha de cada artículo.</p></div></div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button class="faq-head" type="button" aria-expanded="false">
+                            <span>¿Puedo ver el producto antes de comprarlo?</span>
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="faq-panel"><div><p class="faq-answer">Sí. Agendamos cita presencial en nuestra tienda de zulia para que veas y pruebes el equipo antes de decidir. Escríbenos por WhatsApp con el nombre del producto y te confirmamos disponibilidad para demo.</p></div></div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button class="faq-head" type="button" aria-expanded="false">
+                            <span>¿Aceptan cambios o devoluciones?</span>
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="faq-panel"><div><p class="faq-answer">Tienes 7 días calendario desde la entrega para solicitar cambio o devolución, siempre que el producto esté sellado y con su empaque completo. Si el producto llega defectuoso, asumimos el recolección y el reemplazo sin costo para ti.</p></div></div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button class="faq-head" type="button" aria-expanded="false">
+                            <span>¿Cómo consulto la disponibilidad de un producto?</span>
+                            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="faq-panel"><div><p class="faq-answer">Abre la ficha del producto y revisa la sección de especificaciones, donde aparece el stock actual. También puedes escribirnos por WhatsApp o usar el formulario de contacto y te confirmamos existencias y tiempo de reposición en el mismo día.</p></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Professional Footer -->
+    <footer id="ubicacion" class="py-12 px-4 sm:px-8 border-t border-purple-100 relative z-20 scroll-mt-20" style="background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h3 class="text-gray-900 font-bold text-lg mb-2 tracking-wide flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                    MANIAWORLD
+                </h3>
+                <span class="block w-12 h-1 rounded-full bg-purple-500 mb-3"></span>
+                <p class="text-xs text-gray-500 leading-relaxed">Tu tienda de confianza en tecnología, componentes de alta gama y equipos de computación en zulia y toda Venezuela.</p>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Enlaces Rápidos
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#inicio" class="text-gray-500 hover:text-purple-600 transition-colors">Inicio</a></li>
+                    <li><a href="#lo-mas-vendido" class="text-gray-500 hover:text-purple-600 transition-colors">Lo más vendido</a></li>
+                    <li><a href="catalogo.html" class="text-gray-500 hover:text-purple-600 transition-colors">Catálogo</a></li>
+                    <li><a href="contacto.html" class="text-gray-500 hover:text-purple-600 transition-colors">Contacto</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Categorías Principales
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Componentes & Hardware</span></li>
+                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Tarjetas de Video</span></li>
+                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Laptops & PCs</span></li>
+                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Periféricos Gaming</span></li>
+                </ul>
+                <a href="catalogo.html" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold tracking-wide shadow-lg shadow-purple-600/25 transition-all duration-200 active:scale-[0.97]">
+                    Ver todos los productos
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Contacto
+                </h4>
+                <p class="text-xs text-gray-500 mb-2" data-gh="address">zulia, Venezuela</p>
+                <p class="text-xs text-gray-500 mb-2">Email: <a href="contacto.html" data-gh="email" class="text-purple-600 font-semibold hover:text-purple-700 transition-colors">soporte@gigahertzstore.com</a></p>
+                <p class="text-xs text-gray-500">Teléfono: <span class="text-purple-600 font-semibold" data-gh="phone">+58 (212) 555-GIGA</span></p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto pt-6 border-t border-purple-100 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
+            <p>&copy; 2026 MANIAWORLD. Todos los derechos reservados.</p>
+            <div class="mt-2 sm:mt-0 flex items-center gap-2">
+                <span class="text-purple-500 font-medium">MANIAWORLD</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Nav Drawer -->
+    <div id="navMenu" class="md-overlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+        <div class="md-panel">
+            <div class="md-head">
+                <span>MANIAWORLD</span>
+                <button id="nmClose" class="md-close" title="Cerrar menú" aria-label="Cerrar menú">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <nav class="md-links">
+                <a href="#inicio">Inicio</a>
+                <a href="catalogo.html">Productos</a>
+                <a href="#productos" class="js-cat-nav">Categorias</a>
+                <a href="ubicacion.html">Ubicación</a>
+                <a href="contacto.html">Contacto</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div id="cartDrawer" class="cd-overlay" role="dialog" aria-modal="true" aria-labelledby="cdTitle">
+        <div class="cd-panel">
+            <div class="cd-head">
+                <div>
+                    <h3 id="cdTitle"><span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>Tu carrito</h3>
+                    <span class="cd-count" id="cdCount">0 artículos</span>
+                </div>
+                <button id="cdClose" class="cd-close" type="button" aria-label="Cerrar carrito">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="cd-list" id="cdList"></div>
+
+            <div class="cd-foot" id="cdFoot" hidden>
+                <div class="cd-totalrow">
+                    <span>Total estimado</span>
+                    <strong id="cdTotal">$0.00</strong>
+                </div>
+                <a class="cd-checkout" href="checkout.html">
+                    Ir a checkout
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+                <button id="cdKeep" class="cd-keep" type="button">Seguir comprando</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="pm-overlay" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+        <div class="pm-stage">
+        <div class="pm-modal" id="pmModal">
+
+            <nav class="pm-crumbs" id="pmCrumbs" aria-label="Ruta de categoría">
+                <span class="pm-crumb-cat" id="pmCrumbCat"></span>
+                <span class="pm-crumb-sep">/</span>
+                <span class="pm-crumb-sub" id="pmCrumbSub"></span>
+                <span class="pm-crumb-sep">/</span>
+                <span class="pm-crumb-current" id="pmCrumbName"></span>
+            </nav>
+
+            <div class="pm-grid">
+                <div class="pm-media">
+                    <img id="pmImg" alt="" loading="lazy" decoding="async">
+                    <span class="pm-badge" id="pmBadge" hidden></span>
+                </div>
+
+                <div class="pm-info">
+                    <span class="pm-kicker">MANIAWORLD</span>
+                    <h3 class="pm-title" id="pmTitle"></h3>
+                    <p class="pm-sub" id="pmSub"></p>
+
+                    <div class="pm-pricebar">
+                        <div class="pm-price-block">
+                            <span class="pm-price-label" id="pmPriceLabel">Precio USD</span>
+                            <span class="pm-price" id="pmPrice"></span>
+                        </div>
+                        <div class="pm-switch" id="pmSwitch" data-active="usd" role="group" aria-label="Moneda del precio">
+                            <span class="pm-switch-thumb" aria-hidden="true"></span>
+                            <button type="button" class="pm-switch-btn" data-currency="ref" aria-pressed="false">Ref</button>
+                            <button type="button" class="pm-switch-btn is-active" data-currency="usd" aria-pressed="true">USD</button>
+                        </div>
+                    </div>
+                    <p class="pm-rate" id="pmRate" hidden></p>
+
+                    <div class="pm-actions">
+                        <button type="button" class="pm-btn pm-buy" id="pmBuy">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                            <span id="pmBuyLabel">Comprar ahora</span>
+                        </button>
+
+                        <div class="pm-share-wrap">
+                            <button type="button" class="pm-btn pm-share" id="pmShare" aria-haspopup="true" aria-expanded="false">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+                                Compartir
+                            </button>
+                            <div class="pm-share-pop" id="pmSharePop" role="menu" aria-label="Compartir en redes sociales">
+                                <a class="pm-social" role="menuitem" data-net="whatsapp" href="#" target="_blank" rel="noopener">
+                                    <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32a8.188 8.188 0 0 1-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24m-3.05 4.5c-.18 0-.47.07-.71.34-.24.27-.93.91-.93 2.21s.95 2.55 1.08 2.72c.13.17 1.85 2.83 4.54 3.91 2.23.89 2.68.72 3.16.67.48-.05 1.55-.63 1.77-1.25.22-.62.22-1.15.15-1.26-.07-.11-.24-.17-.51-.3-.27-.13-1.55-.76-1.79-.85-.24-.09-.42-.13-.59.14-.18.27-.69.85-.84 1.03-.15.17-.31.2-.57.07-.27-.14-1.12-.41-2.14-1.32-.79-.7-1.32-1.56-1.48-1.82-.15-.27-.02-.41.12-.55.12-.12.27-.31.4-.47.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.47-.07-.14-.59-1.43-.82-1.95-.21-.51-.43-.44-.59-.45l-.5-.01z"/></svg>
+                                    WhatsApp
+                                </a>
+                                <a class="pm-social" role="menuitem" data-net="facebook" href="#" target="_blank" rel="noopener">
+                                    <svg viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                    Facebook
+                                </a>
+                                <a class="pm-social" role="menuitem" data-net="x" href="#" target="_blank" rel="noopener">
+                                    <svg viewBox="0 0 24 24" fill="#111827" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+                                    X / Twitter
+                                </a>
+                                <a class="pm-social" role="menuitem" data-net="telegram" href="#" target="_blank" rel="noopener">
+                                    <svg viewBox="0 0 24 24" fill="#229ED9" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0m4.962 7.224c.1-.002.321.023.465.14a.5.5 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024q-.16.036-5.061 3.345-.72.495-1.301.48c-.428-.009-1.252-.242-1.865-.44-.752-.245-1.349-.374-1.297-.789q.04-.324.893-.663c3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635"/></svg>
+                                    Telegram
+                                </a>
+                                <button class="pm-social" role="menuitem" type="button" data-net="copy">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    <span id="pmCopyLabel">Copiar enlace</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="pm-fav" id="pmFav" aria-pressed="false" aria-label="Agregar a favoritos" title="Agregar a favoritos">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="pm-acc-list">
+                        <div class="pm-acc is-open" id="pmAccSpecs">
+                            <button class="pm-acc-head" type="button" aria-expanded="true" aria-controls="pmAccSpecsPanel">
+                                <span>Especificaciones técnicas</span>
+                                <svg class="pm-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            <div class="pm-acc-panel" id="pmAccSpecsPanel">
+                                <div><dl class="pm-specs" id="pmSpecsList"></dl></div>
+                            </div>
+                        </div>
+                        <div class="pm-acc" id="pmAccDesc">
+                            <button class="pm-acc-head" type="button" aria-expanded="false" aria-controls="pmAccDescPanel">
+                                <span>Descripción</span>
+                                <svg class="pm-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            <div class="pm-acc-panel" id="pmAccDescPanel">
+                                <div><div class="pm-text is-scroll" id="pmDescText"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="pmClose" class="pm-close" type="button" aria-label="Cerrar detalle de producto">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        </div>
+    </div>
+
+    <!-- Combo Modal -->
+    <div id="comboModal" class="pm-overlay" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
+        <div class="pm-stage">
+            <div class="pm-modal">
+                <nav class="pm-crumbs" id="cmCrumbs" aria-label="Ruta de categoría">
+                    <span class="pm-crumb-cat" id="cmCrumbCat"></span>
+                    <span class="pm-crumb-sep">/</span>
+                    <span class="pm-crumb-sub" id="cmCrumbSub"></span>
+                    <span class="pm-crumb-sep">/</span>
+                    <span class="pm-crumb-current" id="cmCrumbName"></span>
+                </nav>
+                <div class="pm-grid">
+                    <div class="pm-media">
+                        <img id="cmImg" alt="" loading="lazy" decoding="async">
+                        <img id="cmExtra" class="cm-media-extra" alt="Incluye monitor" hidden loading="lazy" decoding="async">
+                        <span class="pm-badge">Combo</span>
+                    </div>
+                    <div class="pm-info">
+                        <span class="pm-kicker">MANIAWORLD</span>
+                        <div class="cm-cpu">
+                            <span class="cm-cpu1" id="cmCpu1"></span>
+                            <span class="cm-cpu2" id="cmCpu2"></span>
+                        </div>
+                        <h3 class="pm-title" id="cmTitle"></h3>
+                        <p class="pm-sub" id="cmSub"></p>
+
+                        <div class="pm-pricebar">
+                            <div class="pm-price-block">
+                                <span class="pm-price-label">Precio del combo (USD)</span>
+                                <span class="pm-price" id="cmPrice"></span>
+                            </div>
+                        </div>
+
+                        <div class="pm-actions">
+                            <button type="button" class="pm-btn pm-buy" id="cmBuy">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                <span id="cmBuyLabel">Agregar al carrito</span>
+                            </button>
+                        </div>
+
+                        <div class="cm-includes">
+                            <h4>Incluye</h4>
+                            <ul id="cmIncludes"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button id="cmClose" class="pm-close" type="button" aria-label="Cerrar detalle del combo">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const categories = [
+            { name: "Componentes", svg: '<path d="M6 2h12v20H6z"/><path d="M9 6h6M9 10h6M9 14h6"/>' },
+            { name: "Procesadores", svg: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9zM9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>' },
+            { name: "Tarjetas Madre", svg: '<rect x="2" y="2" width="20" height="20" rx="2"/><path d="M6 6h4v4H6zM14 6h4v12H14zM6 14h4v4H6z"/>' },
+            { name: "Tarjetas de Video", svg: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="2"/>' },
+            { name: "Memorias Ram", svg: '<rect x="2" y="8" width="20" height="8" rx="1"/><path d="M6 8V5M10 8V5M14 8V5M18 8V5"/>' },
+            { name: "Discos Externos", svg: '<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="16" r="2"/><path d="M9 6h6"/>' },
+            { name: "Fuentes de Poder", svg: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 12h4m4 0h4M12 8v8"/>' },
+            { name: "Cases", svg: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h4"/>' },
+            { name: "Equipos Repotenciados", svg: '<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.23-5.23"/>' },
+            { name: "Periféricos y Gaming", svg: '<rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4m-2-2v4M15 11h.01M17 13h.01"/>' },
+            { name: "Teclados", svg: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h2M10 10h2M14 10h2M18 10h.01M6 14h2M10 14h6"/>' },
+            { name: "Mouses", svg: '<rect x="8" y="2" width="8" height="12" rx="4"/><path d="M12 2v4"/>' },
+            { name: "Kit Teclado + Mouse", svg: '<rect x="2" y="8" width="14" height="10" rx="2"/><rect x="18" y="10" width="4" height="6" rx="2"/>' },
+            { name: "Audífonos", svg: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>' },
+            { name: "Micrófonos", svg: '<rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/>' },
+            { name: "Controles", svg: '<rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4m-2-2v4M15 11h.01M17 13h.01"/>' },
+            { name: "Sillas Gamer", svg: '<path d="M9 13H5a2 2 0 0 0-2 2v4h4v-2h10v2h4v-4a2 2 0 0 0-2-2h-4M12 3v10M8 3h8"/>' },
+            { name: "Laptops", svg: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/>' },
+            { name: "Computadoras", svg: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>' },
+            { name: "Monitores", svg: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v4M8 21h8"/>' },
+            { name: "Audio", svg: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>' },
+            { name: "Router", svg: '<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.94 0M12 20h.01"/>' },
+            { name: "Cargadores", svg: '<path d="M12 2v6m-4 0h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"/>' },
+            { name: "UPS / Respaldo Eléctrico", svg: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 6v12M9 9h6"/>' },
+            { name: "Camaras de Seguridad", svg: '<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>' },
+            { name: "Impresoras", svg: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>' },
+            { name: "Accesorios", svg: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>' }
+        ];
+
+        const sliderContainer = document.getElementById('categorySlider');
+        
+        const loopCategories = [...categories, ...categories];
+        loopCategories.forEach(cat => {
+            const item = document.createElement('a');
+            item.href = 'catalogo.html?cat=' + encodeURIComponent(cat.name);
+            item.className = 'category-card flex flex-col items-center justify-center p-4 text-center';
+            item.innerHTML = `
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/60 border border-gray-100 flex items-center justify-center text-purple-600 shadow-sm mb-3 pointer-events-none">
+                    <svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">${cat.svg}</svg>
+                </div>
+                <span class="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 pointer-events-none px-2 leading-tight">${cat.name}</span>
+            `;
+
+            item.addEventListener('mousemove', (e) => {
+                const rect = item.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                item.style.setProperty('--mouse-x', `${x}px`);
+                item.style.setProperty('--mouse-y', `${y}px`);
+            });
+
+            sliderContainer.appendChild(item);
+        });
+
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        document.getElementById('slideLeft').addEventListener('click', () => {
+            sliderContainer.parentElement.scrollBy({ left: -240, behavior: 'smooth' });
+        });
+        document.getElementById('slideRight').addEventListener('click', () => {
+            sliderContainer.parentElement.scrollBy({ left: 240, behavior: 'smooth' });
+        });
+
+        /* Portada: renderer modular (assets/js/hero-canvas.js) */
+        (function () {
+            var GD = window.GigaData;
+            var container = document.getElementById('canvasContainer');
+            var canvas = document.getElementById('hexCanvas');
+            var bg = document.getElementById('heroBg');
+            var overlay = document.getElementById('heroOverlay');
+            if (!container || !canvas || !window.GHHero) return;
+            var hero = new GHHero(canvas, {
+                container: container, bg: bg, overlay: overlay,
+                isDark: document.documentElement.classList.contains('dark')
+            });
+            function applyCanvasSettings(D) {
+                hero.configure((D && D.settings && D.settings.canvas) || {});
+            }
+            hero.configure({});
+            if (GD && GD.ready) GD.ready.then(applyCanvasSettings); else applyCanvasSettings(null);
+            window.addEventListener('theme:change', function (e) {
+                hero.setTheme(!!(e.detail && e.detail.theme === 'dark'));
+            });
+        })();
+
+        let sfxEnabled = true;
+        const sfxPop = new Audio('assets/audio/pop.mp3');
+        sfxPop.volume = 0.45;
+        const sfxHoverSrcs = [
+            'assets/audio/danevaer-mechanical-keyboard-typing-brow.wav',
+            'assets/audio/danevaer-mechanical-keyboard-typing-brow(1).wav',
+            'assets/audio/danevaer-mechanical-keyboard-typing-brow(2).wav',
+            'assets/audio/danevaer-mechanical-keyboard-typing-brow(3).wav',
+            'assets/audio/danevaer-mechanical-keyboard-typing-brow(4).wav',
+            'assets/audio/danevaer-mechanical-keyboard-typing-brown-switches-436103_[cut_0sec].mp3'
+        ];
+        function playPop() {
+            if (!sfxEnabled) return;
+            sfxPop.currentTime = 0;
+            sfxPop.play().catch(() => {});
+        }
+        function playHover() {
+            if (!sfxEnabled) return;
+            const src = sfxHoverSrcs[Math.floor(Math.random() * sfxHoverSrcs.length)];
+            const a = new Audio(src);
+            a.volume = 0.2;
+            a.play().catch(() => {});
+        }
+
+        const soundToggle = document.getElementById('soundToggle');
+        const soundIcon = document.getElementById('soundIcon');
+        soundToggle.addEventListener('click', () => {
+            sfxEnabled = !sfxEnabled;
+            if (sfxEnabled) {
+                soundIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>';
+                soundIcon.classList.add('text-purple-600');
+                soundIcon.classList.remove('text-gray-400');
+            } else {
+                soundIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+                soundIcon.classList.remove('text-purple-600');
+                soundIcon.classList.add('text-gray-400');
+            }
+        });
+
+        const navLinkSel = 'nav a[href^="#"], nav a[href^="catalogo"], nav a[href^="contacto"], .md-links a';
+        document.querySelectorAll(navLinkSel).forEach(el => {
+            el.addEventListener('mouseenter', playHover);
+        });
+        document.querySelectorAll(navLinkSel + ', #navBurger, #nmClose').forEach(el => {
+            el.addEventListener('click', playPop);
+        });
+        new MutationObserver(muts => {
+            muts.forEach(m => {
+                if (m.attributeName !== 'class') return;
+                const t = m.target;
+                if (t.id === 'productModal' || t.id === 'cartDrawer' || t.id === 'navMenu' || t.classList.contains('pm-overlay') || t.classList.contains('cd-overlay') || t.classList.contains('md-overlay')) {
+                    playPop();
+                }
+            });
+        }).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
+
+        const likeBtn = document.getElementById('likeBtn');
+        const likeIcon = document.getElementById('likeIcon');
+        let isLiked = false;
+        likeBtn.addEventListener('click', () => {
+            isLiked = !isLiked;
+            if (isLiked) {
+                likeIcon.setAttribute('fill', '#9333ea');
+                likeIcon.classList.remove('text-gray-700');
+                likeIcon.classList.add('text-purple-600');
+            } else {
+                likeIcon.setAttribute('fill', 'none');
+                likeIcon.classList.add('text-gray-700');
+                likeIcon.classList.remove('text-purple-600');
+            }
+        });
+    </script>
+
+    <script>
+        (function () {
+            const RATE_BS = 36.50;
+
+            const overlay = document.getElementById('productModal');
+            const pmClose = document.getElementById('pmClose');
+            const pmImg = document.getElementById('pmImg');
+            const pmBadge = document.getElementById('pmBadge');
+            const pmTitle = document.getElementById('pmTitle');
+            const pmSub = document.getElementById('pmSub');
+            const pmCrumbCat = document.getElementById('pmCrumbCat');
+            const pmCrumbSub = document.getElementById('pmCrumbSub');
+            const pmCrumbName = document.getElementById('pmCrumbName');
+            const pmPrice = document.getElementById('pmPrice');
+            const pmPriceLabel = document.getElementById('pmPriceLabel');
+            const pmRate = document.getElementById('pmRate');
+            const pmSwitch = document.getElementById('pmSwitch');
+            const pmBuy = document.getElementById('pmBuy');
+            const pmBuyLabel = document.getElementById('pmBuyLabel');
+            const pmShare = document.getElementById('pmShare');
+            const pmSharePop = document.getElementById('pmSharePop');
+            const pmCopyLabel = document.getElementById('pmCopyLabel');
+            const pmFav = document.getElementById('pmFav');
+            const pmDescText = document.getElementById('pmDescText');
+            const pmSpecsList = document.getElementById('pmSpecsList');
+            const accDesc = document.getElementById('pmAccDesc');
+            const accSpecs = document.getElementById('pmAccSpecs');
+
+            let current = null;
+            let currency = 'usd';
+            let lastFocused = null;
+            let buyTimer = null;
+            const favorites = new Set();
+
+            const fmtUSD = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const fmtBS = v => 'Bs. ' + (v * RATE_BS).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const escHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const ghImg = u => (window.GigaSB && GigaSB.resolveImage) ? GigaSB.resolveImage(u, 800) : u;
+
+            function readCard(card) {
+                const img = card.querySelector('img');
+                const h4 = card.querySelector('h4');
+                const subEl = card.querySelector('p');
+                const priceEl = [...card.querySelectorAll('span')].find(s => s.textContent.includes('$'));
+                const badgeEl = card.querySelector('span[class*="top-2"]');
+                const p = card.__gdata || null;
+                const gallery = ((p && p.images && p.images.length) ? p.images.filter(Boolean)
+                    : (p && p.image ? [p.image] : (img && img.getAttribute('src') ? [img.getAttribute('src')] : [])))
+                    .map(ghImg);
+                return {
+                    name: (p && p.name) || (h4 ? h4.textContent.trim() : ''),
+                    sub: (p && p.sub) || (subEl ? subEl.textContent.trim() : ''),
+                    img: gallery[0] || '',
+                    gallery: gallery,
+                    alt: img ? img.getAttribute('alt') : '',
+                    usd: p && p.price != null ? Number(p.price) : (priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')) : 0),
+                    original: p && p.original_price ? Number(p.original_price) : 0,
+                    desc: (p && p.description) ? p.description : '',
+                    specs: (p && Array.isArray(p.specs)) ? p.specs : [],
+                    badge: (p && p.badge) || (badgeEl ? badgeEl.textContent.trim() : ''),
+                    cat: (p && p.category_name) || (card.dataset.cat || '').trim(),
+                    subcat: (p && p.subcategory_name) || (card.dataset.subcat || '').trim()
+                };
+            }
+
+            function renderPrice() {
+                if (!current) return;
+                if (currency === 'usd') {
+                    pmPriceLabel.textContent = 'Precio USD';
+                    pmPrice.textContent = fmtUSD(current.usd);
+                    pmRate.hidden = true;
+                } else {
+                    pmPriceLabel.textContent = 'Precio Ref (Bs)';
+                    pmPrice.textContent = fmtBS(current.usd);
+                    pmRate.textContent = 'Tasa de referencia 1 USD = ' + RATE_BS.toLocaleString('es-VE', { minimumFractionDigits: 2 }) + ' Bs';
+                    pmRate.hidden = false;
+                }
+                pmSwitch.dataset.active = currency;
+                pmSwitch.querySelectorAll('.pm-switch-btn').forEach(btn => {
+                    const active = btn.dataset.currency === currency;
+                    btn.classList.toggle('is-active', active);
+                    btn.setAttribute('aria-pressed', String(active));
+                });
+            }
+
+            function renderFavorite() {
+                const active = current && favorites.has(current.name);
+                pmFav.classList.toggle('is-active', active);
+                pmFav.setAttribute('aria-pressed', String(active));
+                pmFav.setAttribute('aria-label', active ? 'Quitar de favoritos' : 'Agregar a favoritos');
+                pmFav.title = active ? 'Quitar de favoritos' : 'Agregar a favoritos';
+            }
+
+            function renderContent() {
+                pmImg.src = current.img;
+                pmImg.alt = current.alt || current.name;
+                renderCrumbs(current.cat, current.subcat, current.name);
+                pmTitle.textContent = current.name;
+                pmSub.textContent = current.sub;
+                if (current.badge) {
+                    pmBadge.textContent = current.badge;
+                    pmBadge.hidden = false;
+                } else {
+                    pmBadge.hidden = true;
+                }
+                const descText = (current.desc || '').trim();
+                if (descText) {
+                    accDesc.hidden = false;
+                    pmDescText.innerHTML = descText.split(/\n+/).map(t => t.trim()).filter(Boolean).map(t => '<p>' + escHtml(t) + '</p>').join('');
+                } else {
+                    accDesc.hidden = true;
+                    pmDescText.innerHTML = '';
+                }
+                const specs = (current.specs || []).filter(s => s && (s.k || s.v));
+                if (specs.length) {
+                    accSpecs.hidden = false;
+                    pmSpecsList.innerHTML = specs.map(s => '<div><dt>' + escHtml(s.k) + '</dt><dd>' + escHtml(s.v) + '</dd></div>').join('');
+                } else {
+                    accSpecs.hidden = true;
+                    pmSpecsList.innerHTML = '';
+                }
+                const accList = document.querySelector('.pm-acc-list');
+                if (accList) accList.hidden = (accDesc.hidden && accSpecs.hidden);
+            }
+
+            const pmCrumbsEl = document.getElementById('pmCrumbs');
+            const pmCrumbSeps = pmCrumbsEl ? pmCrumbsEl.querySelectorAll('.pm-crumb-sep') : [];
+
+            function toggleCrumb(el, val, title) {
+                const link = !!val;
+                el.classList.toggle('is-link', link);
+                if (link) {
+                    el.setAttribute('role', 'button');
+                    el.setAttribute('tabindex', '0');
+                    el.setAttribute('title', title);
+                } else {
+                    el.removeAttribute('role');
+                    el.removeAttribute('tabindex');
+                    el.removeAttribute('title');
+                }
+            }
+
+            function renderCrumbs(cat, sub, name) {
+                pmCrumbCat.textContent = cat || '';
+                pmCrumbSub.textContent = sub || '';
+                pmCrumbName.textContent = name || '';
+                pmCrumbCat.hidden = !cat;
+                pmCrumbSub.hidden = !sub;
+                if (pmCrumbSeps[0]) pmCrumbSeps[0].hidden = !(cat && sub);
+                if (pmCrumbSeps[1]) pmCrumbSeps[1].hidden = !(cat || sub);
+                toggleCrumb(pmCrumbCat, cat, 'Ver productos de ' + cat);
+                toggleCrumb(pmCrumbSub, sub, 'Ver productos de ' + sub);
+            }
+
+            function goToCatalog(val, param) {
+                if (!val) return;
+                location.href = 'catalogo.html?' + param + '=' + encodeURIComponent(val);
+            }
+            pmCrumbCat.addEventListener('click', () => goToCatalog(current && current.cat, 'cat'));
+            pmCrumbSub.addEventListener('click', () => goToCatalog(current && current.subcat, 'sub'));
+            [pmCrumbCat, pmCrumbSub].forEach(el => el.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+            }));
+
+            function resetAccordions() {
+                accSpecs.classList.add('is-open');
+                accSpecs.querySelector('.pm-acc-head').setAttribute('aria-expanded', 'true');
+                accDesc.classList.remove('is-open');
+                accDesc.querySelector('.pm-acc-head').setAttribute('aria-expanded', 'false');
+            }
+
+            function shareLinks() {
+                const base = location.href.split('#')[0];
+                const url = encodeURIComponent(base + '#' + encodeURIComponent(current.name));
+                const store = (window.GigaData && GigaData.store) ? GigaData.store() : {};
+                const DEFAULT_TPL = '{name} — {sub} | {storeName}';
+                const tpl = (store.shareTemplate && store.shareTemplate.trim()) ? store.shareTemplate : DEFAULT_TPL;
+                const raw = window.ghTemplate ? ghTemplate(tpl, {
+                    storeName: store.name || 'MANIAWORLD',
+                    name: current.name,
+                    sub: current.sub,
+                    url: base
+                }) : (current.name + ' — ' + current.sub + ' | MANIAWORLD');
+                const text = encodeURIComponent(raw);
+                const waBase = window.waLink ? waLink(store.whatsapp || '', raw) : ('https://wa.me/?text=' + text);
+                return {
+                    whatsapp: waBase + '%20' + url,
+                    facebook: 'https://www.facebook.com/sharer/sharer.php?u=' + url,
+                    x: 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url,
+                    telegram: 'https://t.me/share/url?url=' + url + '&text=' + text
+                };
+            }
+
+            function closeShare() {
+                pmSharePop.classList.remove('is-open');
+                pmShare.setAttribute('aria-expanded', 'false');
+            }
+
+            function openModal(card) {
+                current = readCard(card);
+                currency = 'usd';
+                lastFocused = document.activeElement;
+                renderContent();
+                renderPrice();
+                renderFavorite();
+                resetAccordions();
+                closeShare();
+                pmBuyLabel.textContent = 'Comprar ahora';
+                clearTimeout(buyTimer);
+                const links = shareLinks();
+                pmSharePop.querySelectorAll('.pm-social[data-net]').forEach(el => {
+                    const net = el.dataset.net;
+                    if (links[net]) el.href = links[net];
+                });
+                const reveal = () => {
+                    overlay.classList.add('is-open');
+                    document.body.style.overflow = 'hidden';
+                    pmClose.focus({ preventScroll: true });
+                };
+                if (window.GHTransition) GHTransition.play(reveal);
+                else reveal();
+            }
+
+            function closeModal() {
+                const conceal = () => {
+                    overlay.classList.remove('is-open');
+                    closeShare();
+                    document.body.style.overflow = '';
+                };
+                const settle = () => { if (lastFocused) lastFocused.focus({ preventScroll: true }); };
+                if (window.GHTransition) GHTransition.play(conceal, settle);
+                else { conceal(); settle(); }
+            }
+
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', e => {
+                    if (e.target.closest('button')) return;
+                    openModal(card);
+                });
+                card.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openModal(card);
+                    }
+                });
+            });
+
+            pmClose.addEventListener('click', closeModal);
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) closeModal();
+            });
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    if (pmSharePop.classList.contains('is-open')) { closeShare(); return; }
+                    if (overlay.classList.contains('is-open')) closeModal();
+                }
+            });
+
+            pmSwitch.addEventListener('click', e => {
+                const btn = e.target.closest('.pm-switch-btn');
+                if (!btn) return;
+                currency = btn.dataset.currency;
+                renderPrice();
+            });
+
+            pmBuy.addEventListener('click', () => {
+                if (current && window.GigaCart) {
+                    GigaCart.add({ id: current.name, name: current.name, price: current.usd, img: current.img });
+                }
+                pmBuyLabel.textContent = 'Agregado al carrito';
+                clearTimeout(buyTimer);
+                buyTimer = setTimeout(() => { pmBuyLabel.textContent = 'Comprar ahora'; }, 1800);
+            });
+
+            pmShare.addEventListener('click', e => {
+                e.stopPropagation();
+                const open = !pmSharePop.classList.contains('is-open');
+                pmSharePop.classList.toggle('is-open', open);
+                pmShare.setAttribute('aria-expanded', String(open));
+            });
+
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.pm-share-wrap')) closeShare();
+            });
+
+            pmSharePop.addEventListener('click', e => {
+                const item = e.target.closest('.pm-social');
+                if (!item) return;
+                if (item.dataset.net === 'copy') {
+                    e.preventDefault();
+                    const base = location.href.split('#')[0];
+                    const link = base + '#' + encodeURIComponent(current.name);
+                    const done = () => {
+                        pmCopyLabel.textContent = 'Enlace copiado';
+                        setTimeout(() => { pmCopyLabel.textContent = 'Copiar enlace'; }, 1600);
+                    };
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(link).then(done).catch(() => {});
+                    } else {
+                        const ta = document.createElement('textarea');
+                        ta.value = link;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try { document.execCommand('copy'); done(); } catch (err) {}
+                        document.body.removeChild(ta);
+                    }
+                    closeShare();
+                } else {
+                    setTimeout(closeShare, 120);
+                }
+            });
+
+            pmFav.addEventListener('click', () => {
+                if (!current) return;
+                if (favorites.has(current.name)) favorites.delete(current.name);
+                else favorites.add(current.name);
+                renderFavorite();
+                pmFav.classList.remove('pop');
+                void pmFav.offsetWidth;
+                pmFav.classList.add('pop');
+            });
+
+            [accDesc, accSpecs].forEach(acc => {
+                const head = acc.querySelector('.pm-acc-head');
+                head.addEventListener('click', () => {
+                    const open = !acc.classList.contains('is-open');
+                    acc.classList.toggle('is-open', open);
+                    head.setAttribute('aria-expanded', String(open));
+                });
+            });
+        })();
+    </script>
+    <script>
+        document.querySelectorAll('.faq-head').forEach(head => {
+            head.addEventListener('click', () => {
+                const item = head.parentElement;
+                const open = !item.classList.contains('is-open');
+                document.querySelectorAll('.faq-item.is-open').forEach(other => {
+                    other.classList.remove('is-open');
+                    other.querySelector('.faq-head').setAttribute('aria-expanded', 'false');
+                });
+                if (open) {
+                    item.classList.add('is-open');
+                    head.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+    </script>
+    <!-- Back to top -->
+    <button id="backToTop" class="btt" type="button" aria-label="Volver arriba">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>
+    </button>
+
+    <script src="assets/js/cart.js"></script>
+    <script>
+        (function () {
+            const badge = document.getElementById('cartCount');
+            const navCart = document.getElementById('navCart');
+            const drawer = document.getElementById('cartDrawer');
+            const cdList = document.getElementById('cdList');
+            const cdCount = document.getElementById('cdCount');
+            const cdTotal = document.getElementById('cdTotal');
+            const cdFoot = document.getElementById('cdFoot');
+            const cdClose = document.getElementById('cdClose');
+            const cdKeep = document.getElementById('cdKeep');
+            const btt = document.getElementById('backToTop');
+
+            const fmt = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+            function renderBadge() {
+                const c = window.GigaCart ? GigaCart.count() : 0;
+                badge.textContent = c > 99 ? '99+' : String(c);
+                badge.hidden = c === 0;
+            }
+
+            function renderDrawer() {
+                const items = GigaCart.all();
+                const count = GigaCart.count();
+                cdCount.textContent = count === 1 ? '1 artículo' : count + ' artículos';
+
+                if (!items.length) {
+                    cdFoot.hidden = true;
+                    cdList.innerHTML =
+                        '<div class="cd-empty">' +
+                            '<svg class="w-14 h-14 mx-auto text-purple-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
+                            '<p>Tu carrito está vacío</p>' +
+                            '<small>Agrega productos desde el catálogo.</small>' +
+                        '</div>';
+                    return;
+                }
+
+                cdList.innerHTML = items.map(item => {
+                    const id = encodeURIComponent(item.id);
+                    return '<div class="cd-item">' +
+                        (item.img ? '<img class="cd-thumb" src="' + esc(item.img) + '" alt="" loading="lazy" decoding="async">' : '<div class="cd-thumb"></div>') +
+                        '<div class="cd-main">' +
+                            '<div class="cd-name">' + esc(item.name) + '</div>' +
+                            '<div class="cd-unit">' + fmt(item.price) + ' c/u</div>' +
+                            '<div class="cd-meta">' +
+                                '<span class="qty" data-id="' + id + '">' +
+                                    '<button type="button" data-action="dec" aria-label="Restar">−</button>' +
+                                    '<span>' + item.qty + '</span>' +
+                                    '<button type="button" data-action="inc" aria-label="Sumar">+</button>' +
+                                '</span>' +
+                                '<span class="cd-total-i">' + fmt(item.price * item.qty) + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<button type="button" class="cd-remove" data-action="remove" data-id="' + id + '" aria-label="Quitar producto">' +
+                            '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+                        '</button>' +
+                    '</div>';
+                }).join('');
+
+                cdFoot.hidden = false;
+                cdTotal.textContent = fmt(GigaCart.total());
+            }
+
+            function openDrawer() {
+                renderDrawer();
+                drawer.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+                cdClose.focus({ preventScroll: true });
+            }
+
+            function closeDrawer() {
+                drawer.classList.remove('is-open');
+                document.body.style.overflow = '';
+            }
+
+            navCart.addEventListener('click', openDrawer);
+            cdClose.addEventListener('click', closeDrawer);
+            cdKeep.addEventListener('click', closeDrawer);
+            drawer.addEventListener('click', e => {
+                if (e.target === drawer) closeDrawer();
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer();
+            });
+
+            cdList.addEventListener('click', e => {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                const wrap = btn.closest('.qty');
+                const id = decodeURIComponent((wrap ? wrap.dataset.id : btn.dataset.id) || '');
+                if (!id) return;
+                const item = GigaCart.all().find(i => i.id === id);
+                if (!item) return;
+                if (action === 'inc') GigaCart.setQty(id, item.qty + 1);
+                if (action === 'dec') GigaCart.setQty(id, item.qty - 1);
+                if (action === 'remove') GigaCart.remove(id);
+            });
+
+            window.addEventListener('cart:change', () => {
+                renderBadge();
+                renderDrawer();
+            });
+            renderBadge();
+            renderDrawer();
+
+            document.querySelectorAll('.product-card').forEach(card => {
+                const btn = card.querySelector('button[title="Agregar al carrito"]');
+                if (!btn) return;
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const priceEl = [...card.querySelectorAll('span')].find(s => s.textContent.includes('$'));
+                    const imgEl = card.querySelector('img');
+                    const nameEl = card.querySelector('.product-name');
+                    if (!priceEl || !nameEl) return;
+                    GigaCart.add({
+                        id: nameEl.textContent.trim(),
+                        name: nameEl.textContent.trim(),
+                        price: parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')),
+                        img: imgEl ? imgEl.getAttribute('src') : ''
+                    });
+                    badge.classList.remove('pop');
+                    void badge.offsetWidth;
+                    badge.classList.add('pop');
+                });
+            });
+
+            window.addEventListener('scroll', () => {
+                const max = document.documentElement.scrollHeight - window.innerHeight;
+                const th = Math.min(450, Math.max(80, max * 0.6));
+                btt.classList.toggle('is-visible', window.scrollY > th);
+            }, { passive: true });
+            btt.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            });
+        })();
+    </script>
+    <script>
+        (function () {
+            const menu = document.getElementById('navMenu');
+            const burger = document.getElementById('navBurger');
+            const closeBtn = document.getElementById('nmClose');
+            function shut() { menu.classList.remove('is-open'); }
+            burger.addEventListener('click', () => menu.classList.add('is-open'));
+            closeBtn.addEventListener('click', shut);
+            menu.addEventListener('click', e => { if (e.target === menu) shut(); });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && menu.classList.contains('is-open')) shut();
+            });
+            menu.querySelectorAll('.md-links a').forEach(a => a.addEventListener('click', shut));
+        })();
+    </script>
+    <script src="assets/js/categorias.js"></script>
+    <script src="assets/js/bottomnav.js"></script>
+    <script src="assets/js/transition.js"></script>
+    <script>
+        (function () {
+            var slider = document.querySelector('.combo-slider');
+            if (!slider) return;
+            var viewport = document.getElementById('comboViewport');
+            var track = document.getElementById('comboTrack');
+            var dotsWrap = document.getElementById('comboDots');
+            var prev = slider.querySelector('.combo-prev');
+            var next = slider.querySelector('.combo-next');
+            var cards = track ? Array.prototype.slice.call(track.children) : [];
+            if (!viewport || !cards.length) return;
+
+            cards.forEach(function (card) {
+                card.addEventListener('mousemove', function (e) {
+                    var r = card.getBoundingClientRect();
+                    card.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+                    card.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
+                });
+            });
+
+            function addCombo(card) {
+                if (!card || !window.GigaCart) return;
+                GigaCart.add({
+                    id: card.dataset.name,
+                    name: card.dataset.name,
+                    price: parseFloat(card.dataset.price),
+                    img: card.dataset.img
+                });
+            }
+
+            // ---- Combo modal ----
+            var comboModal = document.getElementById('comboModal');
+            var cmClose = document.getElementById('cmClose');
+            var cmImg = document.getElementById('cmImg');
+            var cmExtra = document.getElementById('cmExtra');
+            var cmCpu1 = document.getElementById('cmCpu1');
+            var cmCpu2 = document.getElementById('cmCpu2');
+            var cmTitle = document.getElementById('cmTitle');
+            var cmSub = document.getElementById('cmSub');
+            var cmPrice = document.getElementById('cmPrice');
+            var cmBuy = document.getElementById('cmBuy');
+            var cmBuyLabel = document.getElementById('cmBuyLabel');
+            var cmIncludes = document.getElementById('cmIncludes');
+            var cmCrumbCat = document.getElementById('cmCrumbCat');
+            var cmCrumbSub = document.getElementById('cmCrumbSub');
+            var cmCrumbName = document.getElementById('cmCrumbName');
+            var currentComboCard = null;
+
+            var COMBO_META = {
+                'Combo Gamer Intel i5': {
+                    sub: 'Equipo de entrada listo para jugar en 1080p.',
+                    extra: '',
+                    includes: ['Gabinete Gamer', 'Procesador Intel Core i5 - 7Gen', 'Tarjeta madre compatible', 'Memoria 12GB DDR4', 'Almacenamiento 256GB SSD M.2', 'Gráfica GTX 1660 Super', 'Fuente de poder 500W', 'Refrigeración incluida']
+                },
+                'Combo Ryzen 5': {
+                    sub: 'Rendimiento sólido para eSports y 1080p.',
+                    extra: '',
+                    includes: ['Gabinete Gamer', 'Procesador AMD Ryzen 5 - 5600G', 'Tarjeta madre AM4', 'Memoria 16GB DDR4', 'Almacenamiento 512GB SSD M.2', 'Gráfica RTX 3050', 'Fuente de poder 600W', 'Refrigeración incluida']
+                },
+                'Combo Intel i7 DDR5': {
+                    sub: 'Plataforma DDR5 pensada para 1440p.',
+                    extra: '',
+                    includes: ['Gabinete Gamer', 'Procesador Intel Core i7 - 12Gen', 'Tarjeta madre DDR5', 'Memoria 16GB DDR5', 'Almacenamiento 1TB SSD M.2', 'Gráfica RTX 4060', 'Fuente de poder 700W', 'Refrigeración líquida AIO']
+                },
+                'Combo Ryzen 7 Pro': {
+                    sub: 'Máximo rendimiento en 1440p/4K. Incluye monitor.',
+                    extra: 'assets/img/products/p-4.webp',
+                    includes: ['Gabinete Gamer', 'Procesador AMD Ryzen 7 - 7800X3D', 'Tarjeta madre AM5', 'Memoria 32GB DDR5', 'Almacenamiento 1TB SSD M.2', 'Gráfica RTX 4070 Super', 'Fuente de poder 850W 80+ Gold', 'Refrigeración líquida AIO', 'Monitor 24" 165Hz']
+                }
+            };
+            var checkIcon = '<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
+            function fmtUSD(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+            function openCombo(card) {
+                var name = card.dataset.name;
+                var meta = COMBO_META[name] || { sub: '', extra: '', includes: [] };
+                currentComboCard = card;
+                cmTitle.textContent = name;
+                if (cmCrumbCat) cmCrumbCat.textContent = card.dataset.cat || 'Combos';
+                if (cmCrumbSub) cmCrumbSub.textContent = card.dataset.subcat || '';
+                if (cmCrumbName) cmCrumbName.textContent = name;
+                cmSub.textContent = meta.sub || 'Combo';
+                cmCpu1.textContent = card.querySelector('.combo-cpu-line1').textContent.trim();
+                cmCpu2.textContent = card.querySelector('.combo-cpu-line2').textContent.trim();
+                cmPrice.textContent = fmtUSD(parseFloat(card.dataset.price) || 0);
+                cmImg.src = card.dataset.img;
+                cmImg.alt = name;
+                if (meta.extra) { cmExtra.src = meta.extra; cmExtra.hidden = false; }
+                else { cmExtra.hidden = true; cmExtra.removeAttribute('src'); }
+                cmIncludes.innerHTML = meta.includes.map(function (t) { return '<li>' + checkIcon + '<span>' + t + '</span></li>'; }).join('');
+                cmBuyLabel.textContent = 'Agregar al carrito';
+                var reveal = function () {
+                    comboModal.classList.add('is-open');
+                    document.body.style.overflow = 'hidden';
+                    if (cmClose) cmClose.focus({ preventScroll: true });
+                };
+                if (window.GHTransition) GHTransition.play(reveal);
+                else reveal();
+            }
+            function closeCombo() {
+                var conceal = function () {
+                    comboModal.classList.remove('is-open');
+                    if (!document.getElementById('productModal').classList.contains('is-open')) document.body.style.overflow = '';
+                };
+                if (window.GHTransition) GHTransition.play(conceal);
+                else conceal();
+            }
+            if (cmClose) cmClose.addEventListener('click', closeCombo);
+            if (comboModal) comboModal.addEventListener('click', function (e) { if (e.target === comboModal) closeCombo(); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && comboModal.classList.contains('is-open')) closeCombo(); });
+            if (cmBuy) cmBuy.addEventListener('click', function () {
+                addCombo(currentComboCard);
+                cmBuyLabel.textContent = 'Agregado al carrito';
+                setTimeout(function () { cmBuyLabel.textContent = 'Agregar al carrito'; }, 1600);
+            });
+
+            track.addEventListener('click', function (e) {
+                var btn = e.target.closest('.combo-add');
+                if (btn) { addCombo(btn.closest('.combo-card')); return; }
+                var card = e.target.closest('.combo-card');
+                if (card) openCombo(card);
+            });
+
+            cards.forEach(function (card) {
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-haspopup', 'dialog');
+                card.style.cursor = 'pointer';
+                card.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCombo(card); }
+                });
+            });
+
+            var dots = [];
+            var builtPages = -1;
+            function buildDots(pages) {
+                if (pages === builtPages) return;
+                builtPages = pages;
+                dots = [];
+                if (!dotsWrap) return;
+                dotsWrap.innerHTML = '';
+                for (var i = 0; i < pages; i++) {
+                    var d = document.createElement('button');
+                    d.type = 'button';
+                    d.className = 'combo-dot';
+                    d.setAttribute('role', 'tab');
+                    d.setAttribute('aria-label', 'Ir a la sección ' + (i + 1));
+                    (function (idx) { d.addEventListener('click', function () { goTo(idx); }); })(i);
+                    dotsWrap.appendChild(d);
+                    dots.push(d);
+                }
+            }
+
+            function step() {
+                if (cards.length < 2) return cards[0].offsetWidth;
+                return Math.abs(cards[1].offsetLeft - cards[0].offsetLeft) || cards[0].offsetWidth;
+            }
+            function perView() {
+                var s = step();
+                return s ? Math.max(1, Math.round(viewport.clientWidth / s)) : 1;
+            }
+            function pageCount() {
+                return Math.max(1, cards.length - perView() + 1);
+            }
+            function maxScroll() { return Math.max(0, viewport.scrollWidth - viewport.clientWidth); }
+            function pageLeft(i) { return Math.min(i * step() * perView(), maxScroll()); }
+            function goTo(i) { viewport.scrollTo({ left: pageLeft(i), behavior: 'smooth' }); }
+            function currentPage(pages) {
+                var pos = viewport.scrollLeft, best = 0, bestD = Infinity;
+                for (var i = 0; i < pages; i++) {
+                    var dist = Math.abs(pos - pageLeft(i));
+                    if (dist < bestD) { bestD = dist; best = i; }
+                }
+                return best;
+            }
+            function update() {
+                var ms = maxScroll();
+                var static_ = ms < 4;
+                slider.classList.toggle('is-static', static_);
+                var pages = pageCount();
+                buildDots(pages);
+                var idx = currentPage(pages);
+                dots.forEach(function (d, k) { d.classList.toggle('is-active', k === idx); });
+                if (prev) prev.disabled = static_ || viewport.scrollLeft < 4;
+                if (next) next.disabled = static_ || viewport.scrollLeft > ms - 4;
+            }
+
+            if (prev) prev.addEventListener('click', function () { viewport.scrollBy({ left: -step() * perView(), behavior: 'smooth' }); });
+            if (next) next.addEventListener('click', function () { viewport.scrollBy({ left: step() * perView(), behavior: 'smooth' }); });
+
+            var ticking = false;
+            viewport.addEventListener('scroll', function () {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(function () { ticking = false; update(); });
+            }, { passive: true });
+            window.addEventListener('resize', update);
+            if (window.ResizeObserver) { new ResizeObserver(update).observe(track); }
+            update();
+        })();
+    </script>
+    <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
+    <script src="assets/js/store.js?v=20261026"></script>
+</body>
+</html>

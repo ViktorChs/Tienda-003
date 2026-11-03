@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://isnbkqgzncjgttijzlmo.supabase.co">
+    <title>Armar tu PC - MANIAWORLD</title>
+    <script src="assets/js/theme.js?v=20261026"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/sb.js"></script>
+    <script src="assets/js/store-gate.js?v=20261026"></script>
+<script src="assets/js/data.js"></script>
+    <link rel="stylesheet" href="assets/css/dark.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f5f7;
+            background-image:
+                radial-gradient(circle 320px at 12% 8%, rgba(168, 85, 247, 0.12), transparent 70%),
+                radial-gradient(circle 280px at 88% 20%, rgba(124, 58, 237, 0.1), transparent 70%);
+            background-attachment: fixed;
+            margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ---- Stage (base + products) ---- */
+        .stage-panel {
+            position: relative;
+            background:
+                radial-gradient(circle at 50% 26%, #ffffff 0%, #f6f3ff 62%, #efeafe 100%);
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            border-radius: 1.8rem;
+            padding: clamp(12px, 2.4vw, 28px);
+            box-shadow: 0 24px 60px rgba(76, 29, 149, 0.12);
+            overflow: hidden;
+            transition: box-shadow 320ms var(--pm-ease-out);
+        }
+        .stage {
+            position: relative;
+            width: 100%;
+            max-width: 880px;
+            margin: 0 auto;
+            aspect-ratio: 3 / 2;
+        }
+        .stage-base {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .stage-products {
+            position: absolute;
+            left: 2%;
+            right: 2%;
+            top: 0;
+            bottom: 57%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: clamp(2px, 1vw, 16px);
+            z-index: 2;
+            pointer-events: none;
+        }
+        .stage-products img {
+            flex: 1 1 0;
+            min-width: 0;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 12px 16px rgba(15, 23, 42, 0.18));
+            animation: prodIn 340ms var(--pm-ease-out) both;
+        }
+        @keyframes prodIn {
+            from { opacity: 0; transform: translateY(18px) scale(0.95); }
+            to { opacity: 1; transform: none; }
+        }
+        .stage-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-align: center;
+            padding: 24px;
+            color: #9ca3af;
+            z-index: 3;
+            transition: opacity 220ms var(--pm-ease-out), visibility 0s;
+        }
+        .stage-hint.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .stage-hint svg { width: 42px; height: 42px; color: #c4b5fd; }
+        .stage-hint p { margin: 0; font-size: 13px; font-weight: 600; max-width: 260px; }
+
+        /* ---- Summary ---- */
+        .summary {
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 16px 20px;
+        }
+        .prog-bar { width: 100%; height: 8px; border-radius: 999px; background: rgba(229, 231, 235, 0.8); overflow: hidden; }
+        .prog-fill { height: 100%; border-radius: 999px; background: linear-gradient(135deg, #7c3aed, #d946ef); transition: width 300ms var(--pm-ease-out); }
+
+        /* ---- Options bar ---- */
+        .opt-bar { padding: 14px; }
+        .opt-circles { display: none; align-items: flex-end; justify-content: space-between; gap: clamp(4px, 1.4vw, 18px); }
+        .opt-circle {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: 0;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .oc-ring {
+            position: relative;
+            width: clamp(46px, 5.4vw, 70px);
+            height: clamp(46px, 5.4vw, 70px);
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7c3aed;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+            transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--pm-ease-out);
+        }
+        .oc-ring svg { width: 44%; height: 44%; }
+        .oc-ring img { width: 76%; height: 76%; object-fit: contain; }
+        .opt-circle:hover .oc-ring { border-color: #c4b5fd; transform: translateY(-3px); box-shadow: 0 12px 26px rgba(124, 58, 237, 0.16); }
+        .opt-circle:active .oc-ring { transform: scale(0.95); }
+        .opt-circle.is-filled .oc-ring { border-color: #7c3aed; box-shadow: 0 10px 26px rgba(124, 58, 237, 0.22); }
+        .oc-badge {
+            position: absolute;
+            right: -2px;
+            bottom: -2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7c3aed;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffffff;
+            transform: scale(0);
+            transition: transform 200ms var(--pm-ease-out);
+        }
+        .opt-circle.is-filled .oc-badge { transform: scale(1); }
+        .oc-badge svg { width: 11px; height: 11px; }
+        .oc-label { font-size: 11px; font-weight: 700; color: #6b7280; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .opt-circle.is-filled .oc-label { color: #7c3aed; }
+
+        .opt-mobile-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            border: 0;
+            border-radius: 1.2rem;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 14px 30px rgba(124, 58, 237, 0.35);
+            transition: transform 160ms var(--pm-ease-out), box-shadow 160ms ease;
+        }
+        .opt-mobile-btn:hover { box-shadow: 0 16px 34px rgba(124, 58, 237, 0.42); }
+        .opt-mobile-btn:active { transform: scale(0.98); }
+        .opt-mobile-btn svg { width: 20px; height: 20px; }
+        .opt-mobile-count {
+            background: rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 2px 9px;
+        }
+        @media (min-width: 1024px) {
+            .opt-circles { display: flex; }
+            .opt-mobile-btn { display: none; }
+        }
+
+        /* ---- Modals (shared) ---- */
+        .pick-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 120;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 200ms var(--pm-ease-out), visibility 0s linear 200ms;
+            padding: 0;
+        }
+        .pick-overlay.is-open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 200ms var(--pm-ease-out), visibility 0s; }
+        .pick-panel {
+            width: 100%;
+            max-width: 560px;
+            max-height: min(88vh, 720px);
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            border-radius: 1.6rem 1.6rem 0 0;
+            box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.25);
+            transform: translateY(100%);
+            transition: transform 300ms var(--pm-ease-out);
+        }
+        .pick-overlay.is-open .pick-panel { transform: translateY(0); }
+        @media (min-width: 640px) {
+            .pick-overlay { align-items: center; padding: 24px; }
+            .pick-panel { border-radius: 1.6rem; transform: scale(0.96); opacity: 0; transition: transform 200ms var(--pm-ease-out), opacity 200ms var(--pm-ease-out); }
+            .pick-overlay.is-open .pick-panel { transform: scale(1); opacity: 1; }
+        }
+        .pick-panel--full { max-height: min(92vh, 860px); }
+        .pick-grip { width: 42px; height: 4px; border-radius: 999px; background: #e5e7eb; margin: 10px auto 0; flex-shrink: 0; }
+        @media (min-width: 640px) { .pick-grip { display: none; } }
+        .pick-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px 14px;
+            border-bottom: 1px solid #eef0f3;
+            flex-shrink: 0;
+        }
+        .pick-head-ico {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border-radius: 0.9rem;
+            background: #f5f3ff;
+            border: 1px solid #ede9fe;
+            color: #7c3aed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pick-head-ico svg { width: 20px; height: 20px; }
+        .pick-titles { flex: 1; min-width: 0; }
+        .pick-title { margin: 0; font-size: 15px; font-weight: 800; color: #111827; }
+        .pick-sub { margin: 2px 0 0; font-size: 11.5px; font-weight: 600; color: #9ca3af; }
+        .pick-close {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 140ms ease, border-color 140ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .pick-close:hover { color: #111827; border-color: #d1d5db; }
+        .pick-close:active { transform: scale(0.92); }
+        .pick-close svg { width: 16px; height: 16px; }
+        .pick-body { overflow-y: auto; padding: 12px 14px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+
+        .pick-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #eef0f3;
+            border-radius: 1rem;
+            background: #fff;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 140ms ease, border-color 140ms ease, box-shadow 160ms ease, transform 140ms var(--pm-ease-out);
+        }
+        .pick-card:hover { background: #f9fafb; border-color: #e5e7eb; }
+        .pick-card:active { transform: scale(0.99); }
+        .pick-card.is-active { background: #f5f3ff; border-color: #c4b5fd; box-shadow: 0 6px 16px rgba(124, 58, 237, 0.12); }
+        .pick-thumb {
+            width: 54px;
+            height: 54px;
+            flex-shrink: 0;
+            border-radius: 0.9rem;
+            background: #f9fafb;
+            border: 1px solid #f1f2f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .pick-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
+        .pick-info { flex: 1; min-width: 0; }
+        .pick-name { font-size: 13px; font-weight: 700; color: #1f2937; line-height: 1.35; }
+        .pick-price { font-size: 12px; font-weight: 800; color: #7c3aed; margin-top: 3px; }
+        .pick-check { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #e5e7eb; display: flex; align-items: center; justify-content: center; transition: border-color 140ms ease, background-color 140ms ease; }
+        .pick-check svg { width: 14px; height: 14px; color: #ffffff; opacity: 0; transition: opacity 140ms ease; }
+        .pick-card.is-active .pick-check { background: #7c3aed; border-color: #7c3aed; }
+        .pick-card.is-active .pick-check svg { opacity: 1; }
+
+        /* ---- Build modal sections ---- */
+        .bm-sec { margin-bottom: 18px; }
+        .bm-sec:last-child { margin-bottom: 4px; }
+        .bm-sec-h { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
+        .bm-sec-ico { width: 34px; height: 34px; border-radius: 0.8rem; background: #f5f3ff; border: 1px solid #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .bm-sec-ico svg { width: 18px; height: 18px; }
+        .bm-sec-t { flex: 1; min-width: 0; }
+        .bm-sec-name { font-size: 14px; font-weight: 800; color: #111827; display: block; }
+        .bm-sec-state { font-size: 11.5px; font-weight: 600; color: #9ca3af; }
+        .bm-sec-state.is-filled { color: #7c3aed; }
+        .bm-opts { display: flex; flex-direction: column; gap: 8px; }
+
+        .btt {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 55;
+            width: 46px;
+            height: 46px;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 12px 28px rgba(124, 58, 237, 0.4);
+            opacity: 0;
+            transform: translateY(16px);
+            pointer-events: none;
+            transition: opacity 220ms var(--pm-ease-out), transform 220ms var(--pm-ease-out);
+        }
+        .btt.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .btt:active { transform: scale(0.94); }
+
+        .pl {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            transition: opacity 320ms var(--pm-ease-out), visibility 0s linear 320ms;
+        }
+        .pl.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .pl-logo { width: 160px; height: 160px; object-fit: contain; }
+        .pl-ring {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 4px solid #ede9fe;
+            border-top-color: #7c3aed;
+            animation: plSpin 800ms linear infinite;
+        }
+        @keyframes plSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .pl-ring { animation: none; opacity: 0.45; }
+            .stage-products img { animation: none; }
+            .pick-panel { transition: opacity 160ms linear; }
+            .pick-overlay { transition: opacity 160ms linear, visibility 0s linear 160ms; }
+            .pick-overlay.is-open { transition: opacity 160ms linear, visibility 0s; }
+        }
+
+        /* ---- Viewport-fitting builder ---- */
+        .builder-main {
+            margin-top: 4rem;
+            height: calc(100vh - 4rem);
+            height: calc(100dvh - 4rem);
+            padding: clamp(8px, 1.4vh, 18px) clamp(12px, 2vw, 28px);
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 1023.98px) {
+            html body.has-app-tabs { padding-bottom: 0; }
+            html body.has-app-tabs .builder-main {
+                height: calc(100vh - 4rem - 58px - env(safe-area-inset-bottom));
+                height: calc(100dvh - 4rem - 58px - env(safe-area-inset-bottom));
+            }
+        }
+        .builder-inner {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(6px, 1.2vh, 16px);
+        }
+        .builder-hero { flex-shrink: 0; text-align: center; }
+        .builder-hero .bh-badge {
+            display: inline-block;
+            color: #7c3aed;
+            font-weight: 800;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            background: #f5f3ff;
+            border: 1px solid #ede9fe;
+            padding: 3px 10px;
+            border-radius: 999px;
+            margin-bottom: 4px;
+        }
+        .builder-hero h1 {
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: #111827;
+            font-size: clamp(1.05rem, 3.6vh, 1.9rem);
+            line-height: 1.1;
+        }
+        .builder-hero p {
+            margin: 3px 0 0;
+            color: #6b7280;
+            font-size: clamp(11px, 1.5vh, 13.5px);
+        }
+        .stage-panel {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .stage-wrap {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stage { width: min(880px, 100%); }
+        .summary {
+            flex-shrink: 0;
+            margin-top: clamp(8px, 1.4vh, 16px);
+            padding: clamp(10px, 1.6vh, 16px) clamp(12px, 1.6vw, 20px);
+            flex-wrap: nowrap;
+        }
+        .summary .s-total { flex: 0 0 auto; }
+        .summary .s-prog { flex: 1 1 auto; min-width: 0; }
+        .summary #addCart { flex: 0 0 auto; }
+        .opt-bar { flex-shrink: 0; }
+        @media (max-width: 640px) {
+            .summary { flex-wrap: wrap; }
+            .summary .s-prog { order: 3; flex-basis: 100%; margin-top: 6px; }
+        }
+        @media (max-height: 720px) {
+            .builder-hero p { display: none; }
+            .summary #buildStatus { display: none; }
+            .builder-hero h1 { font-size: clamp(1rem, 3.2vh, 1.5rem); }
+        }
+    </style>
+    <link rel="stylesheet" href="assets/css/tailwind.css">
+</head>
+<body class="w-full relative">
+
+    <!-- Page loader -->
+    <div id="pageLoader" class="pl" aria-hidden="true">
+        <img src="assets/img/logos/logo2.webp" alt="MANIAWORLD" class="pl-logo" onerror="this.src='https://placehold.co/400x400/ffffff/7c3aed?text=GigaHertz'" loading="eager" decoding="async">
+        <div class="pl-ring"></div>
+    </div>
+    <script>
+        (function () {
+            var loader = document.getElementById('pageLoader');
+            var start = Date.now();
+            document.body.style.overflow = 'hidden';
+            function hide() {
+                loader.classList.add('is-done');
+                document.body.style.overflow = '';
+                setTimeout(function () {
+                    if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+                }, 450);
+            }
+            function finish() {
+                var remain = 3000 - (Date.now() - start);
+                if (remain > 0) setTimeout(hide, remain);
+                else hide();
+            }
+            if (document.readyState === 'complete') finish();
+            else window.addEventListener('load', finish);
+        })();
+    </script>
+
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 w-full h-16 z-30 flex items-center justify-between px-4 sm:px-8 border-b border-gray-200/40" style="background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 70%, rgba(255, 255, 255, 0)); backdrop-filter: blur(8px);">
+        <div class="flex items-center space-x-8 flex-shrink-0">
+            <a href="index.html" class="flex items-center space-x-2">
+                <span class="font-bold text-gray-900 tracking-wide text-sm sm:text-base">MANIAWORLD</span>
+            </a>
+        </div>
+
+        <div class="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-700 absolute left-1/2 -translate-x-1/2">
+            <a href="index.html#inicio" class="hover:text-purple-600 transition-colors">Inicio</a>
+            <a href="catalogo.html" class="hover:text-purple-600 transition-colors">Productos</a>
+            <a href="custom.html" class="text-purple-600 font-semibold">Armar PC</a>
+            <a href="ubicacion.html" class="hover:text-purple-600 transition-colors">Ubicación</a>
+            <a href="contacto.html" class="hover:text-purple-600 transition-colors">Contacto</a>
+        </div>
+
+        <div class="flex items-center space-x-2 sm:space-x-3 text-gray-800">
+            <a href="catalogo.html" class="p-2 rounded-full hover:bg-gray-200/60 transition-colors relative" title="Carrito">
+                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full"></span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="builder-main relative z-10">
+        <div class="builder-inner">
+
+            <header class="builder-hero">
+                <span class="bh-badge">Configuración en vivo</span>
+                <h1>Arma tu PC a medida</h1>
+                <p>Elige cada componente y mira cómo se monta sobre la base. Precios en USD.</p>
+            </header>
+
+            <!-- Stage: base image + selected products -->
+            <section class="stage-panel" id="stagePanel" aria-label="Visor de tu PC">
+                <div class="stage-wrap">
+                    <div class="stage">
+                        <img class="stage-base" src="assets/img/misc/Base.webp" alt="" onerror="this.style.display='none'" loading="lazy" decoding="async">
+                        <div class="stage-products" id="stageProducts"></div>
+                        <div class="stage-hint" id="stageHint">
+                            <svg fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+                            <p>Elige tus componentes abajo y aparecerán montados sobre la base.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="glass-panel rounded-2xl summary">
+                    <div class="s-total">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total del armado</p>
+                        <p class="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight" id="buildTotal">$0.00</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5" id="buildStatus">Sin componentes seleccionados</p>
+                    </div>
+                    <div class="s-prog">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-semibold text-gray-500" id="progText">0 de 7 piezas seleccionadas</span>
+                            <button id="resetBuild" type="button" class="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors" title="Limpiar el armado">Limpiar</button>
+                        </div>
+                        <div class="prog-bar"><div id="progBar" class="prog-fill" style="width: 0%"></div></div>
+                    </div>
+                    <button id="addCart" type="button"
+                        class="s-btn inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold tracking-wide shadow-lg shadow-purple-600/25 transition-all duration-200 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-purple-600 disabled:active:scale-100"
+                        disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                        Comprar
+                    </button>
+                </div>
+            </section>
+
+            <!-- Options bar (bottom, full width) -->
+            <section class="glass-panel rounded-2xl opt-bar" id="optBar" aria-label="Componentes para armar tu PC">
+                <div class="opt-circles" id="optCircles"></div>
+                <button type="button" class="opt-mobile-btn" id="optMobileBtn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    <span>Personalizar componentes</span>
+                    <span class="opt-mobile-count" id="optMobileCount">0/7</span>
+                </button>
+            </section>
+        </div>
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="relative z-10 bg-white/85 backdrop-blur-md border-t border-purple-100 px-4 sm:px-8 pt-12 pb-8">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div>
+                <h4 class="text-gray-900 font-bold text-sm mb-3 flex items-center gap-2">MANIAWORLD</h4>
+                <p class="text-xs text-gray-500 leading-relaxed">Tu tienda de confianza en tecnología, componentes de alta gama y equipos de computación en zulia, Venezuela.</p>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Enlaces rápidos
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="index.html#inicio" class="text-gray-500 hover:text-purple-600 transition-colors">Inicio</a></li>
+                    <li><a href="catalogo.html" class="text-gray-500 hover:text-purple-600 transition-colors">Catálogo</a></li>
+                    <li><a href="custom.html" class="text-purple-600 font-semibold transition-colors">Armar PC</a></li>
+                    <li><a href="contacto.html" class="text-gray-500 hover:text-purple-600 transition-colors">Contacto</a></li>
+                    <li><a href="ubicacion.html" class="text-gray-500 hover:text-purple-600 transition-colors">Ubicación</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Categorías Principales
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="catalogo.html?cat=Componentes" class="text-gray-500 hover:text-purple-600 transition-colors">Componentes & Hardware</a></li>
+                    <li><a href="catalogo.html?cat=Componentes" class="text-gray-500 hover:text-purple-600 transition-colors">Tarjetas de Video</a></li>
+                    <li><a href="catalogo.html?cat=Computadoras" class="text-gray-500 hover:text-purple-600 transition-colors">Laptops & PCs</a></li>
+                    <li><a href="catalogo.html?cat=Periféricos" class="text-gray-500 hover:text-purple-600 transition-colors">Periféricos Gaming</a></li>
+                </ul>
+                <a href="catalogo.html" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold tracking-wide shadow-lg shadow-purple-600/25 transition-all duration-200 active:scale-[0.97]">
+                    Ver todos los productos
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+            </div>
+            <div>
+                <h4 class="text-gray-900 font-semibold text-sm mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                    Contacto
+                </h4>
+                <p class="text-xs text-gray-500 mb-2" data-gh="address">zulia, Venezuela</p>
+                <p class="text-xs text-gray-500 mb-2">Email: <a href="contacto.html" data-gh="email" class="text-purple-600 font-semibold hover:text-purple-700 transition-colors">soporte@gigahertzstore.com</a></p>
+                <p class="text-xs text-gray-500">Teléfono: <span class="text-purple-600 font-semibold" data-gh="phone">+58 (212) 555-GIGA</span></p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto pt-6 border-t border-purple-100 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
+            <p>&copy; 2026 MANIAWORLD. Todos los derechos reservados.</p>
+            <p class="mt-2 sm:mt-0 text-purple-500 font-medium">Armar PC</p>
+        </div>
+    </footer>
+
+    <button id="backToTop" class="btt" type="button" aria-label="Volver arriba">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>
+    </button>
+
+    <!-- Desktop per-category picker modal -->
+    <div id="pickModal" class="pick-overlay" role="dialog" aria-modal="true" aria-labelledby="pickModalTitle">
+        <div class="pick-panel">
+            <div class="pick-grip" aria-hidden="true"></div>
+            <div class="pick-head">
+                <span class="pick-head-ico" id="pickModalIco"></span>
+                <span class="pick-titles">
+                    <h3 class="pick-title" id="pickModalTitle">Elegir componente</h3>
+                    <p class="pick-sub" id="pickModalSub"></p>
+                </span>
+                <button type="button" class="pick-close" id="pickClose" aria-label="Cerrar">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="pick-body" id="pickBody"></div>
+        </div>
+    </div>
+
+    <!-- Mobile full builder modal -->
+    <div id="buildModal" class="pick-overlay" role="dialog" aria-modal="true" aria-labelledby="buildTitle">
+        <div class="pick-panel pick-panel--full">
+            <div class="pick-grip" aria-hidden="true"></div>
+            <div class="pick-head">
+                <span class="pick-head-ico">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </span>
+                <span class="pick-titles">
+                    <h3 class="pick-title" id="buildTitle">Personaliza tu PC</h3>
+                    <p class="pick-sub" id="buildSub">Elige cada componente</p>
+                </span>
+                <button type="button" class="pick-close" id="buildClose" aria-label="Cerrar">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="pick-body" id="buildBody"></div>
+        </div>
+    </div>
+
+    <script src="assets/js/cart.js"></script>
+    <script>
+        (function () {
+            const btt = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => {
+                const max = document.documentElement.scrollHeight - window.innerHeight;
+                const th = Math.min(450, Math.max(80, max * 0.6));
+                btt.classList.toggle('is-visible', window.scrollY > th);
+            }, { passive: true });
+            btt.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            });
+        })();
+
+        (function () {
+            var ICONS = {
+                case: '<path d="M4 4h16v16H4z"/><path d="M9 9h6v6H9z"/>',
+                cpu: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>',
+                mb: '<rect x="2" y="2" width="20" height="20" rx="2"/><path d="M6 6h4v4H6zM14 6h4v12H14zM6 14h4v4H6z"/>',
+                ram: '<rect x="2" y="8" width="20" height="8" rx="1"/><path d="M6 8V5M10 8V5M14 8V5M18 8V5"/>',
+                gpu: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="2"/>',
+                psu: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 12h4m4 0h4M12 8v8"/>',
+                cooler: '<path d="M12 2v6m-4 0h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"/>',
+                plus: '<path d="M12 5v14M5 12h14"/>',
+                check: '<path d="M20 6 9 17l-5-5"/>'
+            };
+
+            /* Construye P + SLOT_ORDER desde la DB (builder_slots / builder_parts). */
+            function buildFromDB(D) {
+                if (!D || !D.builderSlots || !D.builderSlots.length) return null;
+                var map = {}, order = [];
+                D.builderSlots.forEach(function (slot) {
+                    var parts = (D.builderParts || []).filter(function (p) {
+                        return String(p.slot_id) === String(slot.id);
+                    }).map(function (p) {
+                        return { id: String(p.id), name: p.name, short: p.short || p.name, price: Number(p.price) || 0, img: ghImg(p.image || '', 400) };
+                    });
+                    map[slot.key] = {
+                        name: slot.name,
+                        label: slot.label || slot.name,
+                        icon: ICONS[slot.icon] || ICONS[slot.key] || ICONS.case,
+                        parts: parts
+                    };
+                    order.push(slot.key);
+                });
+                return { P: map, order: order };
+            }
+
+            var DEFAULT_P = {
+                case: {
+                    name: 'Gabinete',
+                    label: 'Gabinete',
+                    icon: ICONS.case,
+                    parts: [
+                        { id: 'case-lianli', name: 'Gabinete Lian Li O11 Dynamic EVO dual chamber', short: 'Lian Li O11 EVO', price: 169, img: 'assets/img/products/p-12.webp' }
+                    ]
+                },
+                cpu: {
+                    name: 'Procesador',
+                    label: 'CPU',
+                    icon: ICONS.cpu,
+                    parts: [
+                        { id: 'cpu-amd', name: 'AMD Ryzen 7 7800X3D 8 núcleos AM5', short: 'Ryzen 7 7800X3D', price: 389, img: 'assets/img/products/p-2.webp' },
+                        { id: 'cpu-intel', name: 'Intel Core i7-14700K 20 núcleos LGA1700', short: 'Core i7-14700K', price: 409, img: 'assets/img/products/p-7.webp' }
+                    ]
+                },
+                mb: {
+                    name: 'Tarjeta Madre',
+                    label: 'Placa madre',
+                    icon: ICONS.mb,
+                    parts: [
+                        { id: 'mb-z790', name: 'ASUS ROG Strix Z790-A Gaming WiFi DDR5', short: 'Z790-A Strix', price: 329, img: 'assets/img/products/p-8.webp' }
+                    ]
+                },
+                ram: {
+                    name: 'Memoria RAM',
+                    label: 'RAM',
+                    icon: ICONS.ram,
+                    parts: [
+                        { id: 'ram-32', name: 'Corsair Vengeance RGB 32GB DDR5 6000MHz', short: '32GB DDR5 RGB', price: 119, img: 'assets/img/products/p-9.webp' }
+                    ]
+                },
+                gpu: {
+                    name: 'Tarjeta de Video',
+                    label: 'GPU',
+                    icon: ICONS.gpu,
+                    parts: [
+                        { id: 'gpu-4070', name: 'NVIDIA RTX 4070 Super 12GB GDDR6X', short: 'RTX 4070 Super', price: 799, img: 'assets/img/products/p-1.webp' }
+                    ]
+                },
+                psu: {
+                    name: 'Fuente de Poder',
+                    label: 'Fuente',
+                    icon: ICONS.psu,
+                    parts: [
+                        { id: 'psu-850', name: 'Corsair RM850x 850W 80 Plus Gold', short: 'RM850x 850W', price: 139, img: 'assets/img/products/p-11.webp' }
+                    ]
+                },
+                cooler: {
+                    name: 'Enfriamiento',
+                    label: 'Refrigeración',
+                    icon: ICONS.cooler,
+                    parts: [
+                        { id: 'cooler-aio', name: 'Refrigeración NZXT Kraken 360 RGB AIO', short: 'Kraken 360 RGB', price: 189, img: 'assets/img/products/p-13.webp' }
+                    ]
+                }
+            };
+
+            var P = DEFAULT_P;
+
+            var SLOT_ORDER = ['case', 'cpu', 'mb', 'ram', 'gpu', 'psu', 'cooler'];
+
+            var picks = {};
+
+            var stageProducts = document.getElementById('stageProducts');
+            var stageHint = document.getElementById('stageHint');
+            var stagePanel = document.getElementById('stagePanel');
+            var optCircles = document.getElementById('optCircles');
+            var optMobileBtn = document.getElementById('optMobileBtn');
+            var optMobileCount = document.getElementById('optMobileCount');
+            var progBar = document.getElementById('progBar');
+            var progText = document.getElementById('progText');
+            var buildTotal = document.getElementById('buildTotal');
+            var buildStatus = document.getElementById('buildStatus');
+            var addCart = document.getElementById('addCart');
+            var resetBuild = document.getElementById('resetBuild');
+
+            var pickModal = document.getElementById('pickModal');
+            var pickModalTitle = document.getElementById('pickModalTitle');
+            var pickModalSub = document.getElementById('pickModalSub');
+            var pickModalIco = document.getElementById('pickModalIco');
+            var pickBody = document.getElementById('pickBody');
+            var pickClose = document.getElementById('pickClose');
+
+            var buildModal = document.getElementById('buildModal');
+            var buildBody = document.getElementById('buildBody');
+            var buildSub = document.getElementById('buildSub');
+            var buildClose = document.getElementById('buildClose');
+
+            function esc(s) {
+                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            function ghImg(v, w) { return (window.GigaSB && GigaSB.resolveImage) ? GigaSB.resolveImage(v, w) : v; }
+            function usd(n) { return '$' + n.toFixed(2); }
+            function svg(paths, sw) {
+                return '<svg fill="none" stroke="currentColor" stroke-width="' + (sw || 2) + '" viewBox="0 0 24 24">' + paths + '</svg>';
+            }
+            function countPicks() {
+                return SLOT_ORDER.filter(function (k) { return !!picks[k]; }).length;
+            }
+            function totalPicks() {
+                return SLOT_ORDER.reduce(function (s, k) { return s + (picks[k] ? picks[k].price : 0); }, 0);
+            }
+            function cardHTML(k, pt, picked) {
+                var active = picked && picked.id === pt.id;
+                return '<button type="button" class="pick-card' + (active ? ' is-active' : '') + '" data-slot="' + k + '" data-part="' + pt.id + '">' +
+                    '<span class="pick-thumb"><img src="' + esc(pt.img) + '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></span>' +
+                    '<span class="pick-info">' +
+                        '<span class="pick-name">' + esc(pt.name) + '</span>' +
+                        '<span class="pick-price">' + usd(pt.price) + '</span>' +
+                    '</span>' +
+                    '<span class="pick-check">' + svg(ICONS.check, 3) + '</span>' +
+                '</button>';
+            }
+
+            function render() {
+                renderStage();
+                renderCircles();
+                renderSummary();
+            }
+
+            // ---- Stage (base + selected products) ----
+            function renderStage() {
+                var items = SLOT_ORDER.filter(function (k) { return !!picks[k]; });
+                stageProducts.innerHTML = items.map(function (k) {
+                    var pt = picks[k];
+                    return '<img src="' + esc(pt.img) + '" alt="' + esc(pt.short) + '" data-cat="' + k + '" onerror="this.style.display=\'none\'" loading="lazy" decoding="async">';
+                }).join('');
+                stageHint.classList.toggle('is-hidden', items.length > 0);
+            }
+
+            // ---- Bottom circles ----
+            function renderCircles() {
+                optCircles.innerHTML = SLOT_ORDER.map(function (k) {
+                    var cfg = P[k];
+                    var picked = picks[k];
+                    var inner = picked
+                        ? '<img src="' + esc(picked.img) + '" alt="" onerror="this.style.display=\'none\'" loading="lazy" decoding="async">'
+                        : svg(cfg.icon, 1.7);
+                    return '<button type="button" class="opt-circle' + (picked ? ' is-filled' : '') + '" data-slot="' + k + '" aria-haspopup="dialog" title="' + esc(cfg.name) + '">' +
+                        '<span class="oc-ring">' + inner + '<span class="oc-badge">' + svg(ICONS.check, 3) + '</span></span>' +
+                        '<span class="oc-label">' + esc(cfg.label) + '</span>' +
+                    '</button>';
+                }).join('');
+                optCircles.querySelectorAll('.opt-circle').forEach(function (btn) {
+                    btn.addEventListener('click', function () { openPicker(btn.dataset.slot); });
+                });
+            }
+
+            function renderSummary() {
+                var n = countPicks();
+                var t = totalPicks();
+                progBar.style.width = (n / SLOT_ORDER.length * 100) + '%';
+                progText.textContent = n + ' de ' + SLOT_ORDER.length + ' piezas seleccionadas';
+                buildTotal.textContent = usd(t);
+                addCart.disabled = n === 0;
+                buildStatus.textContent = n === 0 ? 'Sin componentes seleccionados' : n + '/' + SLOT_ORDER.length + ' piezas · ' + usd(t);
+                optMobileCount.textContent = n + '/' + SLOT_ORDER.length;
+            }
+
+            function pulseStage() {
+                stagePanel.style.boxShadow = '0 28px 66px rgba(124, 58, 237, 0.24)';
+                setTimeout(function () { stagePanel.style.boxShadow = ''; }, 420);
+            }
+
+            // ---- Desktop picker modal (per category) ----
+            function openPicker(k) {
+                var cfg = P[k];
+                var picked = picks[k];
+                pickModalIco.innerHTML = svg(cfg.icon, 1.8);
+                pickModalTitle.textContent = cfg.name;
+                pickModalSub.textContent = cfg.parts.length === 1 ? '1 opción disponible' : cfg.parts.length + ' opciones disponibles';
+                pickBody.innerHTML = cfg.parts.map(function (pt) { return cardHTML(k, pt, picked); }).join('');
+                pickBody.querySelectorAll('.pick-card').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var slot = btn.dataset.slot;
+                        picks[slot] = P[slot].parts.find(function (p) { return p.id === btn.dataset.part; });
+                        closePicker();
+                        render();
+                        pulseStage();
+                    });
+                });
+                openOverlay(pickModal, pickClose);
+            }
+            function closePicker() { closeOverlay(pickModal); }
+
+            // ---- Mobile full builder modal ----
+            function openBuild() {
+                renderBuild();
+                openOverlay(buildModal, buildClose);
+            }
+            function closeBuild() { closeOverlay(buildModal); }
+
+            function renderBuild() {
+                buildBody.innerHTML = SLOT_ORDER.map(function (k) {
+                    var cfg = P[k];
+                    var picked = picks[k];
+                    var opts = cfg.parts.map(function (pt) { return cardHTML(k, pt, picked); }).join('');
+                    return '<div class="bm-sec" data-sec="' + k + '">' +
+                        '<div class="bm-sec-h">' +
+                            '<span class="bm-sec-ico">' + svg(cfg.icon, 1.8) + '</span>' +
+                            '<span class="bm-sec-t">' +
+                                '<span class="bm-sec-name">' + esc(cfg.name) + '</span>' +
+                                '<span class="bm-sec-state' + (picked ? ' is-filled' : '') + '">' + esc(picked ? picked.short : 'Sin elegir') + '</span>' +
+                            '</span>' +
+                        '</div>' +
+                        '<div class="bm-opts">' + opts + '</div>' +
+                    '</div>';
+                }).join('');
+                buildBody.querySelectorAll('.pick-card').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var slot = btn.dataset.slot;
+                        picks[slot] = P[slot].parts.find(function (p) { return p.id === btn.dataset.part; });
+                        var sc = buildBody.scrollTop;
+                        renderBuild();
+                        buildBody.scrollTop = sc;
+                        renderStage();
+                        renderCircles();
+                        renderSummary();
+                        pulseStage();
+                    });
+                });
+                var n = countPicks();
+                buildSub.textContent = n === 0 ? 'Elige cada componente' : n + ' de ' + SLOT_ORDER.length + ' elegidos · ' + usd(totalPicks());
+            }
+
+            // ---- Overlay helpers ----
+            function openOverlay(overlay, focusEl) {
+                overlay.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+                if (focusEl) setTimeout(function () { focusEl.focus(); }, 220);
+            }
+            function closeOverlay(overlay) {
+                overlay.classList.remove('is-open');
+                document.body.style.overflow = '';
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                if (buildModal.classList.contains('is-open')) closeBuild();
+                else if (pickModal.classList.contains('is-open')) closePicker();
+            });
+
+            pickClose.addEventListener('click', closePicker);
+            pickModal.addEventListener('click', function (e) { if (e.target === pickModal) closePicker(); });
+            buildClose.addEventListener('click', closeBuild);
+            buildModal.addEventListener('click', function (e) { if (e.target === buildModal) closeBuild(); });
+            optMobileBtn.addEventListener('click', openBuild);
+
+            // ---- Reset ----
+            resetBuild.addEventListener('click', function () {
+                picks = {};
+                if (buildModal.classList.contains('is-open')) closeBuild();
+                if (pickModal.classList.contains('is-open')) closePicker();
+                render();
+            });
+
+            // ---- Comprar: add to cart + go to checkout ----
+            addCart.addEventListener('click', function () {
+                if (!window.GigaCart) return;
+                var items = SLOT_ORDER.map(function (k) { return picks[k]; }).filter(Boolean);
+                var total = items.reduce(function (s, p) { return s + p.price; }, 0);
+                window.GigaCart.add({
+                    id: 'custom-' + Date.now(),
+                    name: 'PC a medida (3) @ ' + items.map(function (p) { return p.short; }).join(' + '),
+                    price: total,
+                    img: (picks.case ? picks.case.img : 'assets/img/products/p-12.webp')
+                });
+                var btn = addCart;
+                btn.innerHTML = '¡Agregado!';
+                setTimeout(function () { window.location.href = 'checkout.html'; }, 650);
+            });
+
+            render();
+
+            /* Armador desde Supabase (si está configurado). */
+            if (window.GigaData) {
+                window.GigaData.ready.then(function () {
+                    var built = buildFromDB(window.GigaData);
+                    if (!built || !built.order.length) return;
+                    P = built.P;
+                    SLOT_ORDER = built.order;
+                    picks = {};
+                    render();
+                });
+            }
+
+            // ---- Fit the stage into the available viewport area ----
+            var stageEl = document.querySelector('.stage');
+            var stageWrap = document.querySelector('.stage-wrap');
+            function fitStage() {
+                if (!stageEl || !stageWrap) return;
+                var availH = stageWrap.clientHeight;
+                var availW = stageWrap.clientWidth;
+                if (availH <= 1 || availW <= 1) return;
+                var w = Math.min(availW, 880, availH * 1.5);
+                stageEl.style.width = Math.floor(w) + 'px';
+            }
+            function scheduleFit() { fitStage(); requestAnimationFrame(fitStage); }
+            window.addEventListener('resize', scheduleFit, { passive: true });
+            window.addEventListener('load', scheduleFit);
+            window.addEventListener('orientationchange', scheduleFit);
+            if (window.ResizeObserver) { new ResizeObserver(fitStage).observe(stageWrap); }
+            scheduleFit();
+            setTimeout(scheduleFit, 200);
+            setTimeout(scheduleFit, 1200);
+        })();
+    </script>
+    <script src="assets/js/bottomnav.js"></script>
+    <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
+    <script src="assets/js/store.js?v=20261026"></script>
+</body>
+</html>

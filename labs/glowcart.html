@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glowing Canvas Application</title>
+    <!-- Tailwind CSS for styling and typography -->
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/dark.css">
+    <style>
+        @property --hue {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 270;
+        }
+        @property --rotate {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 0;
+        }
+        @property --bg-y {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 100;
+        }
+        @property --bg-x {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 50;
+        }
+        @property --glow-translate-y {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 0;
+        }
+        @property --bg-size {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 1;
+        }
+        @property --glow-opacity {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 0;
+        }
+        @property --glow-blur {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 4;
+        }
+        @property --white-shadow {
+            syntax: "<number>";
+            inherits: true;
+            initial-value: 0;
+        }
+
+        body {
+            background-color: #030014;
+            color: white;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3.5rem 2rem;
+            background: radial-gradient(circle at center, #120c24 0%, #05030a 100%);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            max-width: 550px;
+            width: 90%;
+            margin: auto;
+            text-align: center;
+            position: relative;
+        }
+
+        .canvas-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .canvas-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 0.75rem 0;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, #fff 30%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .canvas-description {
+            font-size: 1rem;
+            color: #94a3b8;
+            max-width: 420px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .glow-container {
+            --card-color: hsl(260deg 100% 3%);
+            --card-radius: 24px;
+            --card-width: 380px;
+            --border-width: 3px;
+            --animation-speed: 4s;
+            --interaction-speed: 0.5s;
+
+            width: var(--card-width);
+            max-width: 100%;
+            aspect-ratio: 1.5 / 1;
+            color: white;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            border-radius: var(--card-radius);
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            padding: 0;
+            outline: none;
+        }
+
+        .glow-content {
+            position: absolute;
+            inset: 4px;
+            background: var(--card-color);
+            border-radius: calc(var(--card-radius) * 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            z-index: 1;
+            transition: box-shadow 0.5s ease;
+        }
+
+        .glow-content:before {
+            content: "";
+            display: block;
+            position: absolute;
+            inset: calc(var(--border-width) * -1);
+            border-radius: calc(var(--card-radius) * 0.9);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+            mix-blend-mode: color-burn;
+            z-index: -1;
+            background: hsl(270deg 30% 10%);
+            transition: background var(--interaction-speed) ease;
+        }
+
+        .glow {
+            display: block;
+            position: absolute;
+            width: 30%;
+            height: 30%;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            transform-origin: center;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .glow:after {
+            content: "";
+            display: block;
+            z-index: -2;
+            filter: blur(25px);
+            width: 130%;
+            height: 130%;
+            left: -15%;
+            top: -15%;
+            background: hsl(275, 100%, 65%);
+            position: relative;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scaleY(0.4) scaleX(1.2);
+            transition: opacity 0.4s ease, transform 0.4s ease, background 0.4s ease;
+        }
+
+        .glow-container:hover .glow-content,
+        .glow-container.active .glow-content {
+            box-shadow: 0 0 35px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .glow-container:hover .glow-content:before,
+        .glow-container.active .glow-content:before {
+            --bg-size: 15;
+            background: hsl(0deg 0% 16%) radial-gradient(
+                40% 40% at calc(var(--bg-x) * 1%) calc(var(--bg-y) * 1%),
+                rgba(255, 255, 255, 0.95) 0%,
+                hsl(270deg 100% 75%) 35%,
+                hsl(270deg 100% 55%) 70%,
+                transparent 100%
+            );
+            animation: rotate-bg var(--animation-speed) linear infinite;
+        }
+
+        .glow-container:hover .glow:after,
+        .glow-container.active .glow-content ~ .glow:after {
+            opacity: 0.95;
+            transform: scaleY(0.9) scaleX(1.9);
+            filter: blur(35px);
+            background: rgba(255, 255, 255, 0.95);
+            animation: rotate-glow var(--animation-speed) linear infinite;
+        }
+
+        @keyframes rotate-bg {
+            0% {
+                --bg-x: 50;
+                --bg-y: 100;
+            }
+            25% {
+                --bg-x: 0;
+                --bg-y: 50;
+            }
+            50% {
+                --bg-x: 50;
+                --bg-y: 0;
+            }
+            75% {
+                --bg-x: 100;
+                --bg-y: 50;
+            }
+            100% {
+                --bg-x: 50;
+                --bg-y: 100;
+            }
+        }
+
+        @keyframes rotate-glow {
+            0% {
+                transform: translate(0px, 10px) scale(1.5);
+            }
+            25% {
+                transform: translate(-100px, -50px) scale(1.5);
+            }
+            50% {
+                transform: translate(0px, -100px) scale(1.5);
+            }
+            75% {
+                transform: translate(100px, -50px) scale(1.5);
+            }
+            100% {
+                transform: translate(0px, 10px) scale(1.5);
+            }
+        }
+
+        .canvas-action-btn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0;
+            letter-spacing: 0.025em;
+        }
+
+        .canvas-footer {
+            margin-top: 2.5rem;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .custom-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 0, 20, 0.8);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .custom-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-card {
+            background: #0f0a1f;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 1.25rem;
+            padding: 2.5rem 2rem;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.25);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .custom-modal.active .modal-card {
+            transform: scale(1);
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/css/tailwind.css">
+</head>
+<body>
+
+    <main>
+        <div class="canvas-wrapper">
+            <div class="canvas-header">
+                <h1 class="canvas-title">Glowing Canvas</h1>
+                <p class="canvas-description">
+                    Efecto estático por defecto. Al hacer hover, el resplandor morado e intenso núcleo blanco recorren todo el borde.
+                </p>
+            </div>
+
+            <!-- Glowing Shadow Component Button -->
+            <button class="glow-container" id="glowButton" role="button" tabindex="0">
+                <span class="glow"></span>
+                <div class="glow-content">
+                    <span class="canvas-action-btn">
+                        Activar Efecto ✨
+                    </span>
+                </div>
+            </button>
+
+            <div class="canvas-footer">
+                <span>Pasa el cursor para ver el recorrido por el borde.</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom Notification Modal -->
+    <div class="custom-modal" id="customModal">
+        <div class="modal-card">
+            <h3 class="text-xl font-bold text-white mb-2">¡Efecto Activado!</h3>
+            <p class="text-slate-300 mb-6">El resplandor dinámico está recorriendo el borde de la tarjeta.</p>
+            <button onclick="closeModal()" class="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity cursor-pointer shadow-lg shadow-purple-500/20">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const glowButton = document.getElementById('glowButton');
+        const customModal = document.getElementById('customModal');
+
+        glowButton.addEventListener('click', function() {
+            customModal.classList.add('active');
+            glowButton.classList.add('active');
+        });
+
+        function closeModal() {
+            customModal.classList.remove('active');
+            glowButton.classList.remove('active');
+        }
+
+        customModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

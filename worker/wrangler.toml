@@ -1,0 +1,38 @@
+# ============================================================
+#  Fase G - Worker de imagenes (Cloudflare) - CACHE (gratis)
+# ============================================================
+#  Solo cachea en el borde. NO redimensiona ni convierte
+#  (cf.image / Image Resizing = de pago). Las fotos ya se
+#  convierten a WebP al subirlas desde el panel.
+#
+#  Plan free de Workers: hasta 100.000 pedidos/dia.
+#
+#  Fuentes:
+#    /<ruta-objeto>     -> objeto del bucket de Supabase Storage
+#    /?src=<url>        -> solo hosts en ALLOW_HOSTS,
+#                          el propio Supabase o SITE_ORIGIN
+#
+#  Deploy:
+#    npx wrangler deploy --config worker/wrangler.toml
+#  Dev local:
+#    npx wrangler dev --config worker/wrangler.toml
+#
+#  Recomendado: enlazar un dominio propio (p. ej. img.tudominio.com)
+#  via Custom Domain en el panel de Workers (gratis).
+# ============================================================
+
+name = "gigahertz-images"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+workers_dev = true
+
+[vars]
+SUPABASE_URL = "https://isnbkqgzncjgttijzlmo.supabase.co"
+BUCKET = "images"
+# Origen del sitio, para permitir /?src=<assets/...> (vacio = no permite)
+SITE_ORIGIN = ""
+# Hosts externos permitidos via ?src= (separados por coma)
+ALLOW_HOSTS = "thumb.wikimedia.org,upload.wikimedia.org,live.staticflickr.com"
+# Cuantos segundos se guarda en el edge (1 anio)
+CACHE_TTL = "31536000"
+DEBUG = "false"
