@@ -388,11 +388,44 @@
     });
   }
 
+  function changeMyPassword() {
+    var email = (S.user && S.user.email) || '';
+    var busy = false;
+    openModal({
+      title: 'Mi cuenta',
+      body: '<div class="field"><label>Correo</label><input value="' + esc(email) + '" disabled></div>' +
+        '<div class="field"><label>Nueva contraseña</label><input type="password" id="pw_new" autocomplete="new-password" required></div>' +
+        '<div class="field mb0"><label>Repetir contraseña</label><input type="password" id="pw_rep" autocomplete="new-password" required></div>' +
+        '<p class="help">Al cambiarla, el propietario de la tienda verá la nueva contraseña en Usuarios.</p>',
+      buttons: [
+        { label: 'Cancelar', onClick: closeModal },
+        { label: 'Cambiar', class: 'primary', onClick: function () {
+          if (busy) return;
+          var p1 = $('#pw_new').value, p2 = $('#pw_rep').value;
+          if (p1.length < 6) return toast('La contraseña debe tener al menos 6 caracteres', 'err');
+          if (p1 !== p2) return toast('Las contraseñas no coinciden', 'err');
+          busy = true;
+          SB.updatePassword(p1).then(function () {
+            return SB.upsert('admin_credentials', {
+              admin_id: S.me.id, store_id: sid(), email: email, password: p1, updated_at: new Date().toISOString()
+            }, 'admin_id').then(function () { return true; }).catch(function () { return false; });
+          }).then(function (saved) {
+            closeModal();
+            toast(saved ? 'Contraseña actualizada' : 'Contraseña cambiada; falta guardarla en el panel (ejecuta admin_credentials.sql)', saved ? 'ok' : 'err');
+          }).catch(function (e) {
+            busy = false;
+            toast(e.message, 'err');
+          });
+        } }
+      ]
+    });
+  }
+
   /* =========================================================
    *  API + caché  (todo acotado a la tienda del admin)
    * ========================================================= */
   var TENANT = ['settings', 'categories', 'subcategories', 'products', 'combo_items',
-    'nav_groups', 'nav_items', 'builder_slots', 'builder_parts', 'themes', 'orders', 'admins', 'activity_log'];
+    'nav_groups', 'nav_items', 'builder_slots', 'builder_parts', 'themes', 'orders', 'admins', 'admin_credentials', 'activity_log'];
   function sid() { return (S.me && S.me.store_id) || 1; }
   function scope(table, params) {
     if (TENANT.indexOf(table) === -1) return params;
@@ -2751,19 +2784,33 @@ var VIEW_ICO = {
   function renderUsers(mount) {
     var run = function () {
     mount.innerHTML = skeleton(4);
-    load('admins', { select: '*', order: 'created_at.asc' }).then(function (rows) {
+    var rows = [], creds = [], credsOk = true, credMap = {};
+    function loadAll() {
+      return Promise.all([
+        load('admins', { select: '*', order: 'created_at.asc' }),
+        load('admin_credentials', { select: '*' }).catch(function () { credsOk = false; return []; })
+      ]).then(function (r) {
+        rows = r[0];
+        creds = r[1] || [];
+        credMap = {};
+        creds.forEach(function (c) { credMap[c.admin_id] = c; });
+      });
+    }
+    loadAll().then(function () {
       var saved = uiGet('usuarios', {});
       var state = { q: saved.q || '' };
       draw();
 
-      function reload() { return load('admins', { select: '*', order: 'created_at.asc' }).then(function (r) { rows = r; renderBody(); }); }
+      function reload() { return loadAll().then(renderBody); }
 
       function draw() {
         mount.innerHTML = toolbarHtml({
           search: true, searchId: 'uQ', placeholder: 'Buscar usuario…', countId: 'uCount',
-          buttons: [{ label: '+ Invitar usuario', id: 'newUser', class: 'primary' }]
+          buttons: [{ label: '+ Crear usuario', id: 'newUser', class: 'primary' }]
         }) + '<div id="uBody"></div>' +
-          '<div class="card"><p class="mb0 muted" style="font-size:12.5px">Los usuarios se crean en <strong>Supabase → Authentication → Users</strong>. Al invitarlos desde aquí se crea la cuenta (si el registro por email está habilitado) y su perfil. Si tienes la confirmación por correo activada, el usuario deberá confirmarla antes de entrar.</p></div>';
+          '<div class="card"><p class="mb0 muted" style="font-size:12.5px">Creas la cuenta con correo y contraseña; el usuario entra al panel con esos datos y puede cambiarla en <strong>Mi cuenta</strong>. El propietario ve las contraseñas de esta tienda. ' +
+          (credsOk ? 'Si Supabase tiene activada la confirmación por correo, el usuario deberá confirmar antes de entrar.' : '<strong>Falta ejecutar <code>supabase/admin_credentials.sql</code> para guardar y ver contraseñas.</strong>') +
+          '</p></div>';
         $('#uQ', mount).value = state.q;
         renderBody();
         $('#uQ', mount).addEventListener('input', function () { state.q = this.value; uiSet('usuarios', { q: state.q }); renderBody(); });
@@ -2780,16 +2827,33 @@ var VIEW_ICO = {
           return;
         }
         if (!view.length) { body.innerHTML = '<div class="card empty">Ningún usuario coincide.</div>'; return; }
-        body.innerHTML = '<div class="card" style="padding:0;overflow:auto"><table class="responsive"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
+        body.innerHTML = '<div class="card" style="padding:0;overflow:auto"><table class="responsive"><thead><tr><th>Nombre</th><th>Correo</th><th>Usuario</th><th>Contraseña</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
           view.map(function (r) {
+            var c = credMap[r.id];
+            var passCell = c
+              ? '<code class="muted" data-pw="' + esc(c.password) + '">••••••</code> <button class="btn sm" data-reveal="' + esc(r.id) + '">Ver</button>'
+              : '<span class="muted">—</span>';
             return '<tr data-id="' + esc(r.id) + '"><td data-label="Nombre">' + esc(r.name || '—') + '<div class="muted" style="font-size:12px">' + esc(r.id) + '</div></td>' +
+              '<td data-label="Correo">' + esc((c && c.email) || '—') + '</td>' +
               '<td data-label="Usuario">' + esc(r.username || '—') + '</td>' +
+              '<td data-label="Contraseña">' + passCell + '</td>' +
               '<td data-label="Rol"><span class="tag role">' + esc(r.role) + '</span></td>' +
               '<td data-label="Estado">' + (r.active ? '<span class="tag on">Activo</span>' : '<span class="tag off">Inactivo</span>') + '</td>' +
               '<td data-label=""><div class="list-actions"><button class="btn sm" data-edit="' + esc(r.id) + '">Editar</button>' +
               (r.id === S.me.id ? '' : '<button class="btn sm danger" data-del="' + esc(r.id) + '">Quitar</button>') + '</div></td></tr>';
           }).join('') + '</tbody></table></div>';
         body.onclick = function (e) {
+          var rv = e.target.closest('[data-reveal]');
+          if (rv) {
+            var code = rv.parentNode.querySelector('[data-pw]');
+            if (code) {
+              var hidden = code.dataset.hidden !== '0';
+              code.textContent = hidden ? code.dataset.pw : '••••••';
+              code.dataset.hidden = hidden ? '0' : '1';
+              rv.textContent = hidden ? 'Ocultar' : 'Ver';
+            }
+            return;
+          }
           var ed = e.target.closest('[data-edit]');
           if (ed) { editUser(rows.filter(function (r) { return r.id === ed.dataset.edit; })[0]); return; }
           var de = e.target.closest('[data-del]');
@@ -2828,26 +2892,52 @@ var VIEW_ICO = {
       }
 
       function inviteUser() {
+        var busy = false;
         openModal({
-          title: 'Invitar usuario',
-          body: '<form id="invForm"><div class="field"><label>Correo</label><input type="email" id="i_email" required></div>' +
-            '<div class="field"><label>Contraseña temporal</label><input type="text" id="i_pass" required></div>' +
+          title: 'Crear usuario',
+          body: '<form id="invForm"><div class="field"><label>Correo</label><input type="email" id="i_email" required autocomplete="off"></div>' +
+            '<div class="field"><label>Contraseña</label><div style="display:flex;gap:8px"><input type="text" id="i_pass" required autocomplete="new-password" style="flex:1"><button type="button" class="btn" id="i_gen">Generar</button></div></div>' +
             '<div class="field"><label>Nombre</label><input id="i_name"></div>' +
             '<div class="field mb0"><label>Rol</label><select id="i_role"><option value="editor">editor</option><option value="owner">owner</option></select></div>' +
-            '<p class="help">Requiere que el registro por email esté habilitado en Supabase Auth.</p></form>',
+            '<p class="help">El propietario de esta tienda podrá ver esta contraseña en la lista. El usuario puede cambiarla después en <strong>Mi cuenta</strong>.</p></form>',
           buttons: [
             { label: 'Cancelar', onClick: closeModal },
             { label: 'Crear', class: 'primary', onClick: function () {
+              if (busy) return;
               var email = $('#i_email').value.trim(), pass = $('#i_pass').value;
               if (!email || !pass) return toast('Correo y contraseña obligatorios', 'err');
+              if (pass.length < 6) return toast('La contraseña debe tener al menos 6 caracteres', 'err');
+              var name = $('#i_name').value.trim(), role = $('#i_role').value;
+              busy = true;
               SB.adminSignUp(email, pass).then(function (res) {
                 var uid = res && res.user && res.user.id;
                 if (!uid) throw new Error('No se pudo crear el usuario (¿confirmación por correo activada?).');
-                return SB.insert('admins', { id: uid, name: $('#i_name').value.trim(), role: $('#i_role').value, active: true, store_id: sid() });
-              }).then(function () { closeModal(); toast('Usuario creado', 'ok'); logActivity('Invitó usuario: ' + email); reload(); })
-                .catch(function (e) { toast(e.message, 'err'); });
+                return SB.insert('admins', { id: uid, name: name, role: role, active: true, store_id: sid() }).then(function () {
+                  return SB.insert('admin_credentials', {
+                    admin_id: uid, store_id: sid(), email: email, password: pass, updated_at: new Date().toISOString()
+                  }).catch(function () { return false; });
+                });
+              }).then(function (saved) {
+                closeModal();
+                toast(saved === false ? 'Usuario creado, pero falta ejecutar admin_credentials.sql' : 'Usuario creado', saved === false ? 'err' : 'ok');
+                logActivity('Creó usuario: ' + email);
+                reload();
+              }).catch(function (e) {
+                busy = false;
+                toast(e.message, 'err');
+              });
             } }
           ]
+        });
+        var gen = $('#i_gen');
+        if (gen) gen.addEventListener('click', function () {
+          var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+          var out = '';
+          var buf = new Uint32Array(12);
+          if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(buf);
+          else for (var i = 0; i < buf.length; i++) buf[i] = Math.floor(Math.random() * 4294967295);
+          for (var j = 0; j < 12; j++) out += chars[buf[j] % chars.length];
+          $('#i_pass').value = out;
         });
       }
     }).catch(function (e) { errorState(mount, e, run); });
@@ -3965,6 +4055,7 @@ var VIEW_ICO = {
   window.addEventListener('giga:unauthorized', function () { doLogout('Tu sesión expiró por seguridad. Inicia sesión de nuevo.'); });
   var stayBtn = $('#sessStay');
   if (stayBtn) stayBtn.addEventListener('click', function () { SB.touch(); hideSessionWarn(); });
+  var accountBtn = $('#accountBtn'); if (accountBtn) accountBtn.addEventListener('click', changeMyPassword);
   $('#menuToggle').addEventListener('click', function () { toggleNav(); });
   $('#sidebarScrim').addEventListener('click', function () { toggleNav(false); });
   $('#sidebarClose').addEventListener('click', function () { toggleNav(false); });

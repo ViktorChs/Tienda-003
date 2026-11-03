@@ -242,6 +242,21 @@
     });
   }
 
+  function updatePassword(password) {
+    var s = getSession();
+    if (!s || !s.access_token) return Promise.reject(new Error('Sesion no valida'));
+    return fetch(BASE + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: password })
+    }).then(function (res) {
+      return res.json().then(function (data) {
+        if (!res.ok) throw new Error(data.error_description || data.msg || data.error || 'No se pudo cambiar la contrasena');
+        return data;
+      });
+    });
+  }
+
   function signOut() {
     var s = getSession();
     setSession(null);
@@ -474,6 +489,7 @@
     rpc: rpc,
     signIn: signIn,
     adminSignUp: adminSignUp,
+    updatePassword: updatePassword,
     signOut: signOut,
     currentUser: currentUser,
     isLoggedIn: isLoggedIn,
