@@ -2394,7 +2394,8 @@ var VIEW_ICO = {
     mount.innerHTML = '<div class="loading"><span class="spinner"></span> Cargando…</div>';
     getSettings().then(function (s) {
       var store = s.store || {}, hero = s.hero || {}, texts = s.texts || {}, sections = s.sections || [];
-      var logo = store.logo || hero.logo || '';
+      var hasStoreLogo = Object.prototype.hasOwnProperty.call(store, 'logo');
+      var logo = hasStoreLogo ? (store.logo || '') : (hero.logo || '');
       var cardLogo = '<div class="card"><h3>Logo de la tienda</h3><p class="desc">Se muestra en el encabezado de todas las páginas y en la portada. Sube una imagen o pega una ruta/URL.</p>' +
         fieldHtml({ k: 'logo', l: 'Logo', t: 'image', help: 'PNG, WEBP o SVG con fondo transparente.' }, logo) +
         '<div class="check" style="margin-top:10px"><input type="checkbox" id="hero_show"' + (hero.showLogo !== false ? ' checked' : '') + '><span>Mostrar el logo en la portada</span></div></div>';
@@ -2549,7 +2550,10 @@ var VIEW_ICO = {
     out.store.shareTemplate = $('#shareTpl').value;
     out.hero.showLogo = $('#hero_show').checked;
     var logoInp = root.querySelector('input[type=hidden][data-k="logo"]');
-    if (logoInp) out.store.logo = logoInp.value.trim();
+    if (logoInp) {
+      out.store.logo = logoInp.value.trim();
+      if (!out.store.logo) out.hero.logo = '';
+    }
     (out.sections || []).forEach(function (sec, i) {
       var cb = root.querySelector('[data-visible="' + i + '"]'); var ps = root.querySelector('[data-pos="' + i + '"]');
       if (cb) sec.visible = cb.checked;
@@ -2680,12 +2684,58 @@ var VIEW_ICO = {
    * ========================================================= */
   function renderApariencia(mount) {
     mount.innerHTML = '<div class="loading"><span class="spinner"></span> Cargando…</div>';
-    load('themes', { select: '*', order: 'id.asc' })
-      .then(draw)
+    Promise.all([load('themes', { select: '*', order: 'id.asc' }), getSettings()])
+      .then(function (r) { draw(r[0], r[1] || {}); })
       .catch(function (e) { mount.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; });
 
-    function draw(themes) {
-      var html = '<div class="card"><h3>Colores y efectos</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro".</p>' +
+    function draw(themes, settings) {
+      var cv = settings.canvas || {};
+      var cvHex = cv.hex || {};
+      var cvColors = cvHex.colors || {};
+      var cvBg = cv.bg || {};
+      var cvFx = cv.fx || {};
+      var cvKind = cv.kind || 'hex';
+      var imgHelp = 'Sube hasta 3 imágenes para que la portada sea responsive: <strong>Ultra</strong> 1920×1080 px (o 2560×1440), <strong>Desktop</strong> 1280×720 px (o 1600×900) y <strong>Mobile</strong> 768×1024 px (vertical 3:4). Usa el mismo encuadre en las tres, formato WebP/JPG y menos de 300 KB por imagen. Si subes una sola, colócala en Desktop.';
+      var html = '<div class="card"><h3>Fondo de la portada</h3>' +
+        '<p class="desc">Elige hexágonos animados, una imagen, otro efecto o sin fondo. Los hexágonos usan el modo y los colores de aquí; el logo se configura en <strong>Home / Contenido → Portada</strong>.</p>' +
+        '<div class="row">' +
+          '<div class="field"><label>Tipo de fondo</label><select id="cvKind">' +
+            [['hex', 'Hexágonos animados'], ['none', 'Sin hexágonos / fondo liso'], ['image', 'Imagen responsive'], ['aurora', 'Aurora'], ['dots', 'Puntos'], ['constellation', 'Constelación'], ['grid', 'Rejilla'], ['gradient', 'Gradiente']].map(function (o) {
+              return '<option value="' + o[0] + '"' + (String(cvKind) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+            }).join('') + '</select></div>' +
+          '<div class="field"><label>Altura de la portada (%)</label><input type="number" min="40" max="100" id="cvHeight" value="' + esc(cv.height != null ? cv.height : 100) + '"></div>' +
+          '<div class="field"><label>Velocidad</label><input type="number" min="0.1" max="3" step="0.1" id="cvSpeed" value="' + esc(cv.speed != null ? cv.speed : 1) + '"></div>' +
+          '<div class="field"><label>Intensidad</label><input type="number" min="0.1" max="3" step="0.1" id="cvIntensity" value="' + esc(cv.intensity != null ? cv.intensity : 1) + '"></div>' +
+          '<div class="field"><label>Oscurecer imagen (0 a 0.85)</label><input type="number" min="0" max="0.85" step="0.05" id="cvOverlay" value="' + esc(cv.overlay != null ? cv.overlay : 0.35) + '"></div>' +
+        '</div>' +
+        '<div class="check" style="margin:4px 0 14px"><input type="checkbox" id="cvPaused"' + (cv.paused ? ' checked' : '') + '><span>Pausar animación</span></div>' +
+        '<div id="cvHexBox">' +
+          '<strong style="font-size:13px">Hexágonos</strong>' +
+          '<div class="row" style="margin-top:8px">' +
+            '<div class="field"><label>Efecto de ondas / movimiento</label><select id="cvMode">' +
+              [['organic_zones', 'Zonas orgánicas'], ['pulse', 'Ondas expansivas'], ['supernova', 'Supernova'], ['fluid_nodes', 'Nodos líquidos'], ['corner_rotation', 'Rotación por esquinas'], ['drifting_nebula', 'Nebulosa a la deriva'], ['sine_ribbon', 'Cinta ondulada'], ['organic_eclipse', 'Eclipse orgánico'], ['organic_constellation', 'Constelación orgánica']].map(function (o) {
+                return '<option value="' + o[0] + '"' + (String(cvHex.mode || 'pulse') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+              }).join('') + '</select></div>' +
+            '<div class="field"><label>Fondo (claro)</label><input type="color" id="cvLightBg" value="' + esc(cvColors.lightBg || '#f4f5f7') + '"></div>' +
+            '<div class="field"><label>Líneas (claro)</label><input type="color" id="cvLightLine" value="' + esc(cvColors.lightLine || '#dcdfe6') + '"></div>' +
+            '<div class="field"><label>Brillo (claro)</label><input type="color" id="cvLightGlow" value="' + esc(cvColors.lightGlow || '#a855f7') + '"></div>' +
+            '<div class="field"><label>Fondo (oscuro)</label><input type="color" id="cvDarkBg" value="' + esc(cvColors.darkBg || '#0f0a1e') + '"></div>' +
+            '<div class="field"><label>Líneas (oscuro)</label><input type="color" id="cvDarkLine" value="' + esc(cvColors.darkLine || '#2a2f3a') + '"></div>' +
+            '<div class="field"><label>Brillo (oscuro)</label><input type="color" id="cvDarkGlow" value="' + esc(cvColors.darkGlow || '#a855f7') + '"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="cvFxBox" hidden><strong style="font-size:13px">Colores de efectos</strong><div class="row" style="margin-top:8px">' +
+          '<div class="field"><label>Color 1 (aurora / gradiente / constelación)</label><input type="color" id="cvFx1" value="' + esc(cvFx.color1 || '#7c3aed') + '"></div>' +
+          '<div class="field"><label>Color 2 (aurora / gradiente / constelación)</label><input type="color" id="cvFx2" value="' + esc(cvFx.color2 || '#a855f7') + '"></div>' +
+        '</div></div>' +
+        '<div id="cvImageBox" hidden><p class="desc">' + imgHelp + '</p><div class="row">' +
+          fieldHtml({ k: 'cvUltra', l: 'Imagen Ultra', t: 'image', help: '1920×1080 o 2560×1440 px.' }, cvBg.ultra) +
+          fieldHtml({ k: 'cvDesktop', l: 'Imagen Desktop', t: 'image', help: '1280×720 o 1600×900 px.' }, cvBg.desktop) +
+          fieldHtml({ k: 'cvMobile', l: 'Imagen Mobile', t: 'image', help: '768×1024 px, vertical 3:4.' }, cvBg.mobile) +
+        '</div></div>' +
+        '<button class="btn primary" id="cvSave" type="button" style="margin-top:10px">Guardar fondo</button>' +
+        '</div>' +
+        '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro".</p>' +
         '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><button class="btn sm" id="goTemas" type="button">Ir a Temas / Festivos</button></div>';
       themes.forEach(function (t) {
         var c = t.colors || {};
@@ -2729,6 +2779,53 @@ var VIEW_ICO = {
       html += '</div>';
       mount.innerHTML = html;
       var gta = $('#goTemas', mount); if (gta) gta.addEventListener('click', function () { switchTab('temas'); });
+
+      wireForm([{ k: 'cvUltra', t: 'image' }, { k: 'cvDesktop', t: 'image' }, { k: 'cvMobile', t: 'image' }], mount, {});
+      var cvKindEl = $('#cvKind', mount);
+      function syncCanvasBoxes() {
+        var kind = cvKindEl ? cvKindEl.value : 'hex';
+        var hb = $('#cvHexBox', mount), ib = $('#cvImageBox', mount), fb = $('#cvFxBox', mount);
+        if (hb) hb.hidden = kind !== 'hex';
+        if (ib) ib.hidden = kind !== 'image';
+        if (fb) fb.hidden = kind === 'hex' || kind === 'none';
+      }
+      if (cvKindEl) cvKindEl.addEventListener('change', syncCanvasBoxes);
+      syncCanvasBoxes();
+      var cvSave = $('#cvSave', mount);
+      if (cvSave) cvSave.addEventListener('click', function () {
+        function val(id) { var n = $('#' + id, mount); return n ? n.value : ''; }
+        function num(id, d, lo, hi) { return clampNum(val(id), d, lo, hi); }
+        function img(k) { var n = mount.querySelector('input[type=hidden][data-k="' + k + '"]'); return n ? n.value.trim() : ''; }
+        var kind = val('cvKind');
+        var ultra = img('cvUltra'), desktop = img('cvDesktop'), mobile = img('cvMobile');
+        if (kind === 'image' && !ultra && !desktop && !mobile) return toast('Sube al menos una imagen para el fondo', 'err');
+        var next = JSON.parse(JSON.stringify(settings || {}));
+        next.canvas = next.canvas || {};
+        next.canvas.kind = kind;
+        next.canvas.height = num('cvHeight', 100, 40, 100);
+        next.canvas.speed = num('cvSpeed', 1, 0.1, 3);
+        next.canvas.intensity = num('cvIntensity', 1, 0.1, 3);
+        next.canvas.overlay = num('cvOverlay', 0.35, 0, 0.85);
+        next.canvas.paused = $('#cvPaused', mount).checked;
+        next.canvas.hex = Object.assign({}, next.canvas.hex || {});
+        next.canvas.hex.mode = val('cvMode') || 'pulse';
+        next.canvas.hex.colors = Object.assign({}, next.canvas.hex.colors || {}, {
+          lightBg: val('cvLightBg'), lightLine: val('cvLightLine'), lightGlow: val('cvLightGlow'),
+          darkBg: val('cvDarkBg'), darkLine: val('cvDarkLine'), darkGlow: val('cvDarkGlow')
+        });
+        next.canvas.bg = Object.assign({}, next.canvas.bg || {}, { ultra: ultra, desktop: desktop, mobile: mobile });
+        next.canvas.fx = Object.assign({}, next.canvas.fx || {}, { color1: val('cvFx1'), color2: val('cvFx2') });
+        cvSave.disabled = true;
+        SB.upsert('settings', { store_id: sid(), data: next, updated_at: new Date().toISOString() }, 'store_id')
+          .then(function () {
+            settings = next;
+            invalidate();
+            logActivity('Cambió el fondo de la portada');
+            toast('Fondo guardado. Recarga la tienda para verlo.', 'ok');
+          })
+          .catch(function (e) { toast(e.message, 'err'); })
+          .then(function () { cvSave.disabled = false; });
+      });
 
       if (window.ColorPicker && ColorPicker.init) ColorPicker.init(mount);
 

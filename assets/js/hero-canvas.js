@@ -25,7 +25,7 @@
     'organic_zones', 'pulse', 'supernova', 'fluid_nodes', 'corner_rotation',
     'drifting_nebula', 'sine_ribbon', 'organic_eclipse', 'organic_constellation'
   ];
-  var KINDS = ['hex', 'image', 'aurora', 'dots', 'constellation', 'grid', 'gradient'];
+  var KINDS = ['hex', 'none', 'image', 'aurora', 'dots', 'constellation', 'grid', 'gradient'];
 
   var DEFAULTS = {
     kind: 'hex',
@@ -444,6 +444,12 @@
     var t = now * 0.001 * cfg.speed;
 
     ctx.clearRect(0, 0, w, h);
+
+    if (cfg.kind === 'none') {
+      ctx.fillStyle = (this.col && this.col.bg) || cfg.hex.colors.lightBg;
+      ctx.fillRect(0, 0, w, h);
+      return;
+    }
 
     if (cfg.kind === 'hex' || cfg.kind === 'dots') {
       if (cfg.kind === 'hex') this.updateRipples(now, dt);

@@ -248,14 +248,18 @@
       var brand = document.querySelector('nav .font-bold');
       if (brand && s.store.name) brand.textContent = s.store.name;
     }
-    var logo = (s.store && s.store.logo) || (s.hero && s.hero.logo) || '';
+    var hasStoreLogo = s.store && Object.prototype.hasOwnProperty.call(s.store, 'logo');
+    var logo = hasStoreLogo ? (s.store.logo || '') : ((s.hero && s.hero.logo) || '');
+    var logoEls = document.querySelectorAll('.pl-logo, .hero-logo-img, [data-gh-logo]');
     if (logo) {
-      Array.prototype.forEach.call(document.querySelectorAll('.pl-logo, .hero-logo-img, [data-gh-logo]'), function (im) { im.src = logo; });
+      Array.prototype.forEach.call(logoEls, function (im) { im.src = logo; im.style.display = ''; });
+    } else if (hasStoreLogo) {
+      Array.prototype.forEach.call(logoEls, function (im) { im.removeAttribute('src'); im.style.display = 'none'; });
     }
     var heroImg = document.querySelector('.hero-logo-img');
     if (heroImg && s.hero) {
       if (logo) heroImg.src = logo;
-      heroImg.style.display = s.hero.showLogo === false ? 'none' : '';
+      heroImg.style.display = (!logo || s.hero.showLogo === false) ? 'none' : '';
     }
     var combosSec = document.getElementById('combos');
     if (combosSec && s.texts && s.texts.combos) {
