@@ -1252,6 +1252,7 @@
             var start = Date.now();
             document.body.style.overflow = 'hidden';
             function hide() {
+                if (!loader || loader.classList.contains('is-done')) return;
                 loader.classList.add('is-done');
                 document.body.style.overflow = '';
                 setTimeout(function () {
@@ -1259,12 +1260,15 @@
                 }, 450);
             }
             function finish() {
-                var remain = 3000 - (Date.now() - start);
+                var remain = 250 - (Date.now() - start);
                 if (remain > 0) setTimeout(hide, remain);
                 else hide();
             }
-            if (document.readyState === 'complete') finish();
+            var ready = window.GigaData && GigaData.ready;
+            if (ready && typeof ready.then === 'function') ready.then(finish, finish);
+            else if (document.readyState === 'complete') finish();
             else window.addEventListener('load', finish);
+            setTimeout(hide, 5000);
         })();
     </script>
 
