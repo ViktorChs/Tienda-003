@@ -376,6 +376,7 @@
   function fillCombo(card, c) {
     var meta = c.meta || {};
     card.__gdata = c;
+    card.dataset.id = c.id;
     card.dataset.name = c.name;
     card.dataset.price = c.price;
     card.dataset.img = imgSrc(c.image, 640);
@@ -483,7 +484,7 @@
     }).slice(0, 24);
     if (!list.length) { searchResults.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7280;font-size:13px">Sin resultados</div>'; return; }
     searchResults.innerHTML = list.map(function (p) {
-      return '<a href="catalogo.html?q=' + encodeURIComponent(p.name) + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#111827">' +
+      return '<a href="producto.html?id=' + encodeURIComponent(p.id) + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#111827">' +
         '<img loading="lazy" decoding="async" src="' + imgSrc(p.image, 88) + '" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;background:#fff">' +
         '<span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + String(p.name).replace(/</g, '&lt;') + '</span>' +
         '<span style="display:block;color:#6b7280;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + String(p.sub || '').replace(/</g, '&lt;') + '</span></span>' +

@@ -3379,16 +3379,19 @@
 
             document.querySelectorAll('.product-card').forEach(card => {
                 card.setAttribute('tabindex', '0');
-                card.setAttribute('role', 'button');
+                card.setAttribute('role', 'link');
                 card.style.cursor = 'pointer';
-                card.addEventListener('click', e => {
-                    if (e.target.closest('button')) return;
-                    openModal(card);
-                });
+                function goProduct(e) {
+                    if (e && e.target.closest('button')) return;
+                    var p = card.__gdata || {};
+                    var id = p.id || card.dataset.id;
+                    if (id) location.href = 'producto.html?id=' + encodeURIComponent(id);
+                }
+                card.addEventListener('click', goProduct);
                 card.addEventListener('keydown', e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        openModal(card);
+                        goProduct(e);
                     }
                 });
             });
@@ -3596,7 +3599,7 @@
                     const nameEl = card.querySelector('.product-name');
                     if (!priceEl || !nameEl) return;
                     GigaCart.add({
-                        id: nameEl.textContent.trim(),
+                        id: (card.__gdata && card.__gdata.id) || nameEl.textContent.trim(),
                         name: nameEl.textContent.trim(),
                         price: parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')),
                         img: imgEl ? imgEl.getAttribute('src') : ''
@@ -4147,6 +4150,6 @@
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261106"></script>
+    <script src="assets/js/store.js?v=20261107"></script>
 </body>
 </html>

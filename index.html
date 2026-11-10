@@ -2618,16 +2618,19 @@
 
             document.querySelectorAll('.product-card').forEach(card => {
                 card.setAttribute('tabindex', '0');
-                card.setAttribute('role', 'button');
+                card.setAttribute('role', 'link');
                 card.style.cursor = 'pointer';
-                card.addEventListener('click', e => {
-                    if (e.target.closest('button')) return;
-                    openModal(card);
-                });
+                function goProduct(e) {
+                    if (e && e.target.closest('button')) return;
+                    var p = card.__gdata || {};
+                    var id = p.id || card.dataset.id;
+                    if (id) location.href = 'producto.html?id=' + encodeURIComponent(id);
+                }
+                card.addEventListener('click', goProduct);
                 card.addEventListener('keydown', e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        openModal(card);
+                        goProduct(e);
                     }
                 });
             });
@@ -2857,7 +2860,7 @@
                     const nameEl = card.querySelector('.product-name');
                     if (!priceEl || !nameEl) return;
                     GigaCart.add({
-                        id: nameEl.textContent.trim(),
+                        id: (card.__gdata && card.__gdata.id) || nameEl.textContent.trim(),
                         name: nameEl.textContent.trim(),
                         price: parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')),
                         img: imgEl ? imgEl.getAttribute('src') : ''
@@ -2919,7 +2922,7 @@
             function addCombo(card) {
                 if (!card || !window.GigaCart) return;
                 GigaCart.add({
-                    id: card.dataset.name,
+                    id: (card.__gdata && card.__gdata.id) || card.dataset.name,
                     name: card.dataset.name,
                     price: parseFloat(card.dataset.price),
                     img: card.dataset.img
@@ -3016,7 +3019,10 @@
                 var btn = e.target.closest('.combo-add');
                 if (btn) { addCombo(btn.closest('.combo-card')); return; }
                 var card = e.target.closest('.combo-card');
-                if (card) openCombo(card);
+                if (card) {
+                    var cid = (card.__gdata && card.__gdata.id) || card.dataset.id;
+                    if (cid) location.href = 'producto.html?id=' + encodeURIComponent(cid);
+                }
             });
 
             cards.forEach(function (card) {
@@ -3025,7 +3031,11 @@
                 card.setAttribute('aria-haspopup', 'dialog');
                 card.style.cursor = 'pointer';
                 card.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCombo(card); }
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        var cid = (card.__gdata && card.__gdata.id) || card.dataset.id;
+                        if (cid) location.href = 'producto.html?id=' + encodeURIComponent(cid);
+                    }
                 });
             });
 
@@ -3098,6 +3108,6 @@
         })();
     </script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261106"></script>
+    <script src="assets/js/store.js?v=20261107"></script>
 </body>
 </html>

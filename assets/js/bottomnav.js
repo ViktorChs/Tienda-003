@@ -64,7 +64,7 @@
         document.body.classList.add('has-app-tabs');
 
         var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-        var ACTIVE = { 'index.html': 'inicio', '': 'inicio', 'catalogo.html': 'productos', 'checkout.html': 'carrito' };
+        var ACTIVE = { 'index.html': 'inicio', '': 'inicio', 'catalogo.html': 'productos', 'producto.html': 'productos', 'checkout.html': 'carrito' };
         var active = ACTIVE[page] || '';
         if (active) {
             var t = nav.querySelector('.app-tab[data-tab="' + active + '"]');
