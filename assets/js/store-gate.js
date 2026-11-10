@@ -43,7 +43,7 @@
         (showRetry ? '<button type="button" id="gh-gate-retry" style="margin-top:6px;padding:10px 24px;border:0;border-radius:999px;background:#7c3aed;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Reintentar</button>' : '') +
       '</div>';
     var btn = document.getElementById('gh-gate-retry');
-    if (btn) btn.addEventListener('click', function () { render('Comprobando...', 'Verificando el estado de la tienda.', false); check(true); });
+    if (btn) btn.addEventListener('click', function () { btn.disabled = true; btn.textContent = 'Reintentando...'; check(); });
     document.documentElement.style.overflow = 'hidden';
   }
 
@@ -58,8 +58,7 @@
     render(title, message, retry);
   }
 
-  function check(silent) {
-    if (!silent) render('Comprobando...', 'Verificando el estado de la tienda.', false);
+  function check() {
     return fetch(BASE + '/rest/v1/rpc/store_public_status', {
       method: 'POST',
       headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
@@ -85,14 +84,14 @@
 
   function start() {
     if (closed) return;
-    check(false);
+    check();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 
   window.GHStoreGate = {
-    check: function () { return check(true); },
+    check: function () { return check(); },
     isClosed: function () { return closed; }
   };
 })();
