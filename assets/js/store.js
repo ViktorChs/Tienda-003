@@ -371,6 +371,26 @@
     });
   }
 
+  /* Navegacion compartida a la ficha del producto (incluye tarjetas clonadas). */
+  function productHref(card) {
+    var p = card && card.__gdata;
+    var id = (p && p.id) || (card && card.dataset.id);
+    return id ? ('producto.html?id=' + encodeURIComponent(id)) : '';
+  }
+  document.addEventListener('click', function (e) {
+    var card = e.target.closest('.product-card');
+    if (!card || e.target.closest('button, a')) return;
+    var href = productHref(card);
+    if (href) location.href = href;
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var card = e.target.closest('.product-card');
+    if (!card || e.target !== card) return;
+    var href = productHref(card);
+    if (href) { e.preventDefault(); location.href = href; }
+  });
+
   /* ---------------- Combos ---------------- */
 
   function fillCombo(card, c) {
