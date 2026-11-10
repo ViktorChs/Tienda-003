@@ -247,6 +247,18 @@
       MONEY.pos = s.store.currencyPosition || 'before';
       var brand = document.querySelector('nav .font-bold');
       if (brand && s.store.name) brand.textContent = s.store.name;
+      if (s.store.name) {
+        var file = (location.pathname.split('/').pop() || '').toLowerCase();
+        var labels = {
+          'catalogo.html': 'Catálogo',
+          'checkout.html': 'Checkout / Cotización',
+          'contacto.html': 'Contacto',
+          'custom.html': 'Armar tu PC',
+          'ubicacion.html': 'Ubicación'
+        };
+        var prefix = labels[file] || '';
+        document.title = prefix ? (prefix + ' - ' + s.store.name) : s.store.name;
+      }
     }
     var hasStoreLogo = s.store && Object.prototype.hasOwnProperty.call(s.store, 'logo');
     var logo = hasStoreLogo ? (s.store.logo || '') : ((s.hero && s.hero.logo) || '');
