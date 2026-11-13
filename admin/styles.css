@@ -1810,3 +1810,37 @@ html[data-theme="dark"] .login-input input::placeholder { color: #6c7688; }
 .theme-default-btn em { font-style: normal; font-size: 11.5px; color: var(--muted); }
 .theme-default-btn.active { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 8%, var(--surface)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 12%, transparent); }
 .theme-default-btn.active svg { color: var(--brand); }
+
+/* Suscripcion / limites */
+.plan-card { padding: 18px; margin-bottom: 16px; display: grid; gap: 14px; }
+.plan-card.is-blocked { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.plan-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.plan-kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.plan-head h3 { margin: 2px 0 0; font-size: 18px; }
+.plan-status { font-size: 11.5px; font-weight: 700; padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+.plan-status.ok { background: #dcfce7; color: #166534; }
+.plan-status.danger { background: #fee2e2; color: #991b1b; }
+.plan-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.plan-metric { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.plan-metric span { font-size: 11.5px; color: var(--muted); }
+.plan-metric strong { font-size: 16px; }
+.plan-progress { display: flex; flex-direction: column; gap: 5px; }
+.plan-progress-track { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.plan-progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--ok); transition: width .3s ease; }
+.plan-progress.warn .plan-progress-track span { background: #f59e0b; }
+.plan-progress.danger .plan-progress-track span { background: var(--danger); }
+.plan-progress small { font-size: 11.5px; color: var(--muted); }
+.plan-progress.hidden { opacity: .85; }
+.plan-due { margin: 0; font-size: 12.5px; color: var(--muted); }
+.plan-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.plan-foot p { margin: 0; font-size: 12.5px; color: var(--muted); }
+.plan-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; padding: 5px 9px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--border); margin-right: 8px; }
+.plan-chip.warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.plan-chip.danger { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+html[data-theme="dark"] .plan-metric { background: #10131a; }
+html[data-theme="dark"] .plan-status.ok { background: #123326; color: #86efac; }
+html[data-theme="dark"] .plan-status.danger { background: #3b1a1e; color: #fca5a5; }
+html[data-theme="dark"] .plan-chip { background: #10131a; }
+html[data-theme="dark"] .plan-chip.warn { background: #3a2f10; color: #fde68a; border-color: #6b4d12; }
+html[data-theme="dark"] .plan-chip.danger { background: #3b1a1e; color: #fca5a5; border-color: #7f1d1d; }
+@media (max-width: 720px) { .plan-metrics { grid-template-columns: 1fr; } }

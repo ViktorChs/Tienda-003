@@ -18,6 +18,21 @@ window.GIGA_CONFIG = {
   STORE_ID: 3,
   STORE_SLUG: 'tienda-003',
 
+  // Fallback local si la RPC store_product_usage aun no esta aplicada.
+  PLAN_TIER: 'basico',
+
+  // OX1 = control plane (pagos, licencias, bloqueo, tier).
+  // WS_REF es el project ref de la base GIGA compartida.
+  OX1_URL: 'https://wufzqynbhvfbzlmqnvgw.supabase.co',
+  OX1_ANON_KEY: 'sb_publishable_MLdr8wFcc2vG9npNtUg38g_Dg_uxodE',
+  WS_REF: 'isnbkqgzncjgttijzlmo',
+
+  // Branding dinamico. brand.js reemplaza MANIAWORLD/GIGAHEARTZ en el DOM.
+  BRAND: {
+    name: 'WhatShop Demo 3',
+    whatsapp: '584121049705'
+  },
+
   // Al subir una imagen desde el panel se convierte a WebP en el navegador
   // antes de enviarla (menos peso). Se salta SVG y GIF animado.
   IMAGE_MAX_WIDTH: 1600,

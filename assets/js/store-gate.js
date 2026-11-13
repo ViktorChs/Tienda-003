@@ -58,7 +58,7 @@
     render(title, message, retry);
   }
 
-  function check() {
+  function checkLocal() {
     return fetch(BASE + '/rest/v1/rpc/store_public_status', {
       method: 'POST',
       headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
@@ -71,14 +71,39 @@
       if (!st) return;
       if (st.open === true) { unlock(); return; }
       var name = st.name || STORE_NAME;
+      var blocked = st.ox1_blocked === true;
       lock(
-        'Tienda cerrada',
-        (st.message || 'La tienda esta cerrada en este momento.') + ' Vuelve mas tarde o escribenos por WhatsApp.',
-        true
+        blocked ? 'Tienda suspendida' : 'Tienda cerrada',
+        (st.message || (blocked ? 'La suscripcion de la tienda no esta activa.' : 'La tienda esta cerrada en este momento.')) +
+          (blocked ? ' Contacta a OX1 para reactivarla.' : ' Vuelve mas tarde o escribenos por WhatsApp.'),
+        !blocked
       );
-      try { document.title = name + ' - Tienda cerrada'; } catch (e) {}
+      try { document.title = name + ' - ' + (blocked ? 'Tienda suspendida' : 'Tienda cerrada'); } catch (e) {}
     }).catch(function () {
       lock('No se pudo verificar la tienda', 'Revisa tu conexion e intentalo de nuevo.', true);
+    });
+  }
+
+  function check() {
+    var ox1 = window.GHOx1;
+    if (!ox1 || !ox1.isConfigured()) return checkLocal();
+
+    return ox1.status({ fresh: true }).then(function (st) {
+      if (st && st.online === false) {
+        var title = st.status === 'expired' ? 'Suscripcion vencida'
+          : st.status === 'unregistered' ? 'Tienda no registrada'
+          : 'Tienda suspendida';
+        var message = st.reason || (st.status === 'unregistered'
+          ? 'Esta tienda no esta registrada en OX1.'
+          : 'La suscripcion de la tienda no esta activa.');
+        lock(title, message + ' Contacta a OX1 para reactivarla.', false);
+        try { document.title = (st.name || STORE_NAME) + ' - ' + title; } catch (e) {}
+        return null;
+      }
+      return checkLocal();
+    }).catch(function () {
+      // Si OX1 no responde, la tienda sigue protegida por su estado local.
+      return checkLocal();
     });
   }
 

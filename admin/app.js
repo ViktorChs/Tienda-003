@@ -6,7 +6,7 @@
   'use strict';
 
   var SB = window.GigaSB;
-  var S = { user: null, me: null, tab: 'dashboard', cache: {} };
+  var S = { user: null, me: null, tab: 'dashboard', cache: {}, usage: null, ox1: null, planAt: 0 };
 
   /* =========================================================
    *  Utilidades DOM
@@ -439,6 +439,142 @@
   function invalidate() { S.cache = {}; }
 
   /* =========================================================
+   *  Plan / suscripcion (OX1 + limites locales)
+   * ========================================================= */
+  function planFallback(tier) {
+    tier = tier || (window.GIGA_CONFIG && window.GIGA_CONFIG.PLAN_TIER) || 'free';
+    if (window.GHOx1 && window.GHOx1.limitsFor) return window.GHOx1.limitsFor(tier);
+    if (tier === 'empresarial') return { tier: 'empresarial', label: 'Empresario', visible_limit: 100, image_limit: 5, hidden_limit: 20 };
+    if (tier === 'profesional') return { tier: 'profesional', label: 'Emprendimiento', visible_limit: 25, image_limit: 2, hidden_limit: 20 };
+    if (tier === 'basico') return { tier: 'basico', label: 'Pequeño Emprendimiento', visible_limit: 7, image_limit: 1, hidden_limit: 20 };
+    return { tier: 'free', label: 'Prueba', visible_limit: 7, image_limit: 1, hidden_limit: 20 };
+  }
+
+  function usageFromRows(rows, tier) {
+    var limits = planFallback(tier || (S.ox1 && S.ox1.tier) || 'free');
+    rows = rows || S.cache.products || [];
+    var visible = rows.filter(function (r) { return !r.hidden; }).length;
+    var hidden = rows.filter(function (r) { return !!r.hidden; }).length;
+    limits.visible_count = visible;
+    limits.hidden_count = hidden;
+    limits.total_count = rows.length;
+    limits.can_add_visible = visible < limits.visible_limit;
+    limits.can_add_hidden = hidden < limits.hidden_limit;
+    limits.upgrade_url = (window.GHOx1 && window.GHOx1.upgradeUrl)
+      ? window.GHOx1.upgradeUrl('Hola, quiero subir la suscripcion de mi tienda.')
+      : 'https://wa.me/584121049705';
+    return limits;
+  }
+
+  function currentUsage(rows) {
+    if (S.usage) return S.usage;
+    return usageFromRows(rows, (window.GIGA_CONFIG && window.GIGA_CONFIG.PLAN_TIER) || (S.ox1 && S.ox1.tier) || 'free');
+  }
+
+  function loadPlan(force) {
+    if (!force && S.usage && (Date.now() - S.planAt) < 20000) return Promise.resolve(S.usage);
+    var usage = SB.rpc('store_product_usage', { p_store_id: sid() }).then(function (u) {
+      S.usage = u;
+      return u;
+    }).catch(function () {
+      S.usage = null;
+      return null;
+    });
+    var status = (window.GHOx1 && window.GHOx1.isConfigured())
+      ? window.GHOx1.status().then(function (st) { S.ox1 = st; return st; }).catch(function () { S.ox1 = null; return null; })
+      : Promise.resolve(null);
+    return Promise.all([usage, status]).then(function (r) {
+      S.planAt = Date.now();
+      return r[0] || currentUsage();
+    });
+  }
+
+  function planPct(n, d) {
+    d = Number(d) || 1;
+    return Math.max(0, Math.min(100, Math.round((Number(n) || 0) / d * 100)));
+  }
+
+  function planTone(pct) {
+    return pct >= 100 ? 'danger' : pct >= 80 ? 'warn' : 'ok';
+  }
+
+  function planUpgradeHref(u) {
+    var msg = 'Hola, quiero subir la suscripcion de mi tienda (' + (u ? u.label : '') + ').';
+    return (window.GHOx1 && window.GHOx1.upgradeUrl)
+      ? window.GHOx1.upgradeUrl(msg)
+      : 'https://wa.me/584121049705?text=' + encodeURIComponent(msg);
+  }
+
+  function showUpgrade(msg) {
+    toast(msg, 'err', 'Subir plan', function () {
+      if (window.GHOx1 && window.GHOx1.openUpgrade) window.GHOx1.openUpgrade(msg);
+      else window.open(planUpgradeHref(currentUsage()), '_blank', 'noopener');
+    });
+  }
+
+  function planCardHtml(u) {
+    if (!u) return '';
+    var pct = planPct(u.visible_count, u.visible_limit);
+    var hpct = planPct(u.hidden_count, u.hidden_limit);
+    var tone = planTone(pct);
+    var online = !S.ox1 || S.ox1.online !== false;
+    var statusText = online ? 'Activa' : (S.ox1.status === 'expired' ? 'Vencida' : 'Suspendida');
+    var due = '';
+    if (S.ox1 && S.ox1.next_due) {
+      try { due = new Date(S.ox1.next_due).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) {}
+    }
+    return '<section class="card plan-card' + (online ? '' : ' is-blocked') + '">' +
+      '<div class="plan-head">' +
+        '<div><span class="plan-kicker">Tu suscripcion</span><h3>' + esc(u.label) + '</h3></div>' +
+        '<span class="plan-status ' + (online ? 'ok' : 'danger') + '">' + esc(statusText) + '</span>' +
+      '</div>' +
+      '<div class="plan-metrics">' +
+        '<div class="plan-metric"><span>Productos visibles</span><strong>' + u.visible_count + ' / ' + u.visible_limit + '</strong></div>' +
+        '<div class="plan-metric"><span>Ocultos</span><strong>' + u.hidden_count + ' / ' + u.hidden_limit + '</strong></div>' +
+        '<div class="plan-metric"><span>Imagenes por producto</span><strong>' + u.image_limit + '</strong></div>' +
+      '</div>' +
+      '<div class="plan-progress ' + tone + '"><div class="plan-progress-track"><span style="width:' + pct + '%"></span></div><small>' + pct + '% del limite visible</small></div>' +
+      '<div class="plan-progress hidden ' + planTone(hpct) + '"><div class="plan-progress-track"><span style="width:' + hpct + '%"></span></div><small>' + hpct + '% de ocultos</small></div>' +
+      (due ? '<p class="plan-due">Proximo cobro: <strong>' + esc(due) + '</strong></p>' : '') +
+      '<div class="plan-foot">' +
+        '<p>Si necesitas mas productos o imagenes, sube tu suscripcion.</p>' +
+        '<a class="btn sm primary" href="' + esc(planUpgradeHref(u)) + '" target="_blank" rel="noopener">Subir suscripcion</a>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function planChipHtml(u) {
+    if (!u) return '';
+    var pct = planPct(u.visible_count, u.visible_limit);
+    return '<span class="plan-chip ' + planTone(pct) + '">' + esc(u.label) + ' · ' + u.visible_count + '/' + u.visible_limit + ' visibles</span>';
+  }
+
+  function canSaveProduct(data, row, rows, isCombo) {
+    var u = currentUsage(rows);
+    var hidden = !!data.hidden;
+    var count = hidden ? u.hidden_count : u.visible_count;
+    var limit = hidden ? u.hidden_limit : u.visible_limit;
+    if (row && !!row.hidden === hidden) count = Math.max(0, count - 1);
+    if (count >= limit) {
+      return hidden
+        ? 'Limite de productos ocultos alcanzado (' + count + ' de ' + limit + '). Sube tu suscripcion para ocultar mas.'
+        : 'Limite de productos visibles alcanzado (' + count + ' de ' + limit + '). Sube tu suscripcion para añadir mas.';
+    }
+
+    if (!isCombo) {
+      var sameImages = row
+        && String(row.image || '') === String(data.image || '')
+        && JSON.stringify(row.images || []) === JSON.stringify(data.images || []);
+      var gallery = Array.isArray(data.images) ? data.images.length : 0;
+      var total = gallery + (data.image ? 1 : 0);
+      if (!sameImages && total > u.image_limit) {
+        return 'Tu plan ' + u.label + ' permite ' + u.image_limit + ' imagen(es) por producto. Sube tu suscripcion para añadir mas.';
+      }
+    }
+    return '';
+  }
+
+  /* =========================================================
    *  Definición de entidades CRUD simples
    * ========================================================= */
   var ENTITIES = {
@@ -750,7 +886,28 @@ var VIEW_ICO = {
     return out;
   }
 
-  function wireForm(fields, root, formState) {
+  function wireForm(fields, root, formState, opts) {
+    opts = opts || {};
+    function formPlan() {
+      return S.usage || planFallback();
+    }
+    function productImageLimit() {
+      return opts.imageLimit == null ? null : Number(opts.imageLimit);
+    }
+    function galleryCount(k) {
+      var ta = root.querySelector('[data-gallery-ta="' + k + '"]');
+      return ta ? ta.value.split(/\n+/).filter(function (s) { return s.trim(); }).length : 0;
+    }
+    function canAddImages(add, k) {
+      var max = productImageLimit();
+      if (!max) return true;
+      var main = root.querySelector('input[type=hidden][data-k="image"]');
+      var current = galleryCount('images') + (main && main.value ? 1 : 0);
+      if (k === 'image' && main && main.value) current -= 1;
+      if (current + add <= max) return true;
+      showUpgrade('Tu plan permite ' + max + ' imagen(es) por producto. Sube tu suscripcion para añadir mas.');
+      return false;
+    }
     // color: sincroniza picker <-> texto
     $all('[data-k]', root).forEach(function (picker) {
       if (picker.type !== 'color') return;
@@ -775,6 +932,7 @@ var VIEW_ICO = {
     });
     // subida de imágenes
     function doUpload(file, k, prev) {
+      if (k === 'image' && !canAddImages(1, k)) return Promise.resolve(null);
       formState.uploading = (formState.uploading || 0) + 1;
       toast('Subiendo imagen…');
       return SB.upload('catalog', file).then(function (url) {
@@ -856,6 +1014,7 @@ var VIEW_ICO = {
       fileIn.addEventListener('change', function () {
         var files = Array.prototype.slice.call(fileIn.files);
         if (!files.length) return;
+        if (!canAddImages(files.length, k)) { fileIn.value = ''; return; }
         formState.uploading = (formState.uploading || 0) + files.length;
         toast('Subiendo ' + files.length + ' imagen(es)…');
         Promise.all(files.map(function (f) { return SB.upload('catalog', f); })).then(function (urls) {
@@ -966,7 +1125,7 @@ var VIEW_ICO = {
 
     var foot = m.modal.querySelector('footer');
     var h3 = m.modal.querySelector('header h3');
-    wireForm(allFields, m.body, formState);
+    wireForm(allFields, m.body, formState, opts);
 
     function stepEl(i) { return $('.fstep[data-step="' + i + '"]', m.body); }
 
@@ -1460,7 +1619,8 @@ var VIEW_ICO = {
     mount.innerHTML = uiGet(tabKey, {}).view === 'table' ? skeleton(6) : productSkeleton();
     Promise.all([
       S.cache.categories ? null : load('categories', { select: '*', order: 'position.asc,id.asc' }),
-      S.cache.subcategories ? null : load('subcategories', { select: '*', order: 'position.asc,id.asc' })
+      S.cache.subcategories ? null : load('subcategories', { select: '*', order: 'position.asc,id.asc' }),
+      loadPlan()
     ]).then(function () {
       return load('products', { select: '*', type: 'eq.' + type, order: 'position.asc,id.asc' });
     }).then(function (rows) {
@@ -1515,6 +1675,7 @@ var VIEW_ICO = {
       }
 
       function draw() {
+        var u = currentUsage(rows);
         var html = toolbarHtml({
           search: true, searchId: 'pQ', placeholder: 'Buscar ' + esc(title.toLowerCase()) + '…',
           filters: [
@@ -1523,7 +1684,7 @@ var VIEW_ICO = {
             { id: 'pSort', options: sortOptions() }
           ],
           countId: 'pCount',
-          extra: '<div class="view-toggle" role="group" aria-label="Vista">' +
+          extra: planChipHtml(u) + '<div class="view-toggle" role="group" aria-label="Vista">' +
             '<button type="button" data-view="cards" aria-pressed="' + (state.view === 'cards') + '" aria-label="Vista de tarjetas" title="Tarjetas">' + VIEW_ICO.cards + '</button>' +
             '<button type="button" data-view="table" aria-pressed="' + (state.view === 'table') + '" aria-label="Vista de lista" title="Lista">' + VIEW_ICO.table + '</button>' +
             '</div>',
@@ -1550,7 +1711,9 @@ var VIEW_ICO = {
             renderBody();
           });
         });
-        $('#newBtn', mount).addEventListener('click', function () { openEditor(null); });
+        var newBtn = $('#newBtn', mount);
+        newBtn.addEventListener('click', function () { openEditor(null); });
+        if (!u.can_add_visible && !u.can_add_hidden) newBtn.title = 'Límite de tu plan alcanzado';
         $('#csvBtn', mount).addEventListener('click', exportCsv);
         $('#pBulk', mount).addEventListener('click', function (e) {
           var h = e.target.closest('[data-bulk-hidden]');
@@ -1700,12 +1863,14 @@ var VIEW_ICO = {
       }
       function bulkHidden(hidden) {
         var ids = selectedIds(); if (!ids.length) return;
+        var changing = ids.filter(function (id) { var r = byId(id); return r && !!r.hidden !== hidden; }).length;
+        if (moveBlocked(changing, hidden)) return;
         Promise.all(ids.map(function (id) { return SB.update('products', { id: 'eq.' + id }, { hidden: hidden }); }))
           .then(function () {
             ids.forEach(function (id) { var r = byId(id); if (r) r.hidden = hidden; });
             toast(hidden ? 'Ocultados' : 'Mostrados', 'ok');
             logActivity((hidden ? 'Ocultó ' : 'Mostró ') + ids.length + ' ' + noun + '(s)');
-            sel = {}; renderBody();
+            sel = {}; renderBody(); loadPlan(true);
           }).catch(function (e) { toast(e.message, 'err'); });
       }
       function bulkCategory(cid) {
@@ -1725,12 +1890,20 @@ var VIEW_ICO = {
             .then(function () {
               toast(ids.length + ' eliminado(s)', 'ok');
               logActivity('Eliminó ' + ids.length + ' ' + noun + '(s)');
-              sel = {}; invalidate(); reload();
+              sel = {}; invalidate(); loadPlan(true); reload();
             }).catch(function (e) { toast(e.message, 'err'); });
         }, { dangerLabel: 'Eliminar' });
       }
 
       function byId(id) { return rows.filter(function (r) { return String(r.id) === String(id); })[0]; }
+      function moveBlocked(n, hidden) {
+        var u = currentUsage(rows);
+        var count = hidden ? u.hidden_count : u.visible_count;
+        var limit = hidden ? u.hidden_limit : u.visible_limit;
+        if (count + n <= limit) return false;
+        showUpgrade('Limite de ' + (hidden ? 'productos ocultos' : 'productos visibles') + ' alcanzado (' + count + ' de ' + limit + '). Sube tu suscripcion para continuar.');
+        return true;
+      }
       function reload() { return load('products', { select: '*', type: 'eq.' + type, order: 'position.asc,id.asc' }).then(function (r2) { rows = r2; sel = {}; renderBody(); }); }
 
       function savePrice(id, inp) {
@@ -1745,14 +1918,15 @@ var VIEW_ICO = {
       }
       function toggleHidden(id) {
         var r = byId(id); var hidden = !r.hidden;
+        if (moveBlocked(1, hidden)) return;
         SB.update('products', { id: 'eq.' + id }, { hidden: hidden }).then(function () {
-          r.hidden = hidden; toast(hidden ? 'Oculto' : 'Visible', 'ok'); renderBody();
+          r.hidden = hidden; toast(hidden ? 'Oculto' : 'Visible', 'ok'); renderBody(); loadPlan(true);
         }).catch(function (e) { toast(e.message, 'err'); });
       }
       function doDelete(id) {
         var row = byId(id);
         confirmDialog('¿Eliminar «' + (row && row.name) + '»?', function () {
-          removeWithUndo('products', row, { label: 'Eliminado', after: reload });
+          removeWithUndo('products', row, { label: 'Eliminado', after: function () { loadPlan(true); reload(); } });
           logActivity('Eliminó ' + noun + ': ' + (row && row.name));
         });
       }
@@ -1760,8 +1934,10 @@ var VIEW_ICO = {
         var row = byId(id);
         var copy = {}; Object.keys(row).forEach(function (k) { if (k !== 'id' && k !== 'created_at') copy[k] = row[k]; });
         copy.name = row.name + ' (copia)'; copy.position = rows.length; copy.store_id = sid();
+        var limitMsg = canSaveProduct(copy, null, rows, isCombo);
+        if (limitMsg) { showUpgrade(limitMsg); return; }
         SB.insert('products', copy).then(function () {
-          toast('Duplicado', 'ok'); logActivity('Duplicó ' + noun + ': ' + row.name); reload();
+          toast('Duplicado', 'ok'); logActivity('Duplicó ' + noun + ': ' + row.name); loadPlan(true); reload();
         }).catch(function (e) { toast(e.message, 'err'); });
       }
       function exportCsv() {
@@ -1777,8 +1953,26 @@ var VIEW_ICO = {
 
       function openEditor(row) {
         var isProd = !isCombo;
+        var u = currentUsage(rows);
+        if (!row && u && !u.can_add_visible && !u.can_add_hidden) {
+          showUpgrade('Límite de productos de tu plan alcanzado (' + u.visible_count + '/' + u.visible_limit + ' visibles y ' + u.hidden_count + '/' + u.hidden_limit + ' ocultos).');
+          return;
+        }
         var values = row || { position: rows.length, price: 0, specs: isCombo ? [] : DEFAULT_PRODUCT_SPECS, description: isCombo ? '' : DEFAULT_PRODUCT_DESCRIPTION };
-        var steps = buildSteps(fields, isCombo ? COMBO_STEPS : PRODUCT_STEPS);
+        if (!row && u && !u.can_add_visible && u.can_add_hidden) {
+          values.hidden = true;
+          toast('Tu plan visible está lleno; el producto se creará oculto.', 'ok');
+        }
+        var editorFields = fields;
+        if (isProd) {
+          editorFields = fields.map(function (f) {
+            if (f.k !== 'image' && f.k !== 'images') return f;
+            var copy = Object.assign({}, f);
+            copy.help = 'Máximo ' + u.image_limit + ' imagen(es) por producto en tu plan ' + u.label + '.';
+            return copy;
+          });
+        }
+        var steps = buildSteps(editorFields, isCombo ? COMBO_STEPS : PRODUCT_STEPS);
         if (isCombo) {
           steps.push({ title: 'Textos del combo', short: 'Textos', sub: 'Líneas de CPU y etiqueta que aparecen en la tarjeta del combo.', html: comboMetaHtml(row) });
         }
@@ -1801,6 +1995,7 @@ var VIEW_ICO = {
       var wiz = openFormWizard({
         title: (row ? 'Editar ' : 'Nuevo ') + noun,
         saveLabel: row ? 'Guardar cambios' : 'Crear ' + noun,
+        imageLimit: isProd ? u.image_limit : null,
         steps: steps,
         values: values,
         freeNav: !!row,
@@ -1818,6 +2013,8 @@ var VIEW_ICO = {
             if (!data.category_id) data.category_id = null;
           }
           if (!row) data.store_id = sid();
+          var limitMsg = canSaveProduct(data, row, rows, isCombo);
+          if (limitMsg) { showUpgrade(limitMsg); return Promise.resolve(null); }
           var p = row ? SB.update('products', { id: 'eq.' + row.id }, data) : SB.insert('products', data);
           return p.then(function () {
             try { localStorage.removeItem(draftKey); } catch (e) {}
@@ -1825,6 +2022,7 @@ var VIEW_ICO = {
             if (MODAL) MODAL.dirty = false;
             closeModal(); invalidate(); toast('Guardado', 'ok');
             logActivity((row ? 'Editó ' : 'Creó ') + noun + ': ' + data.name);
+            loadPlan(true);
             reload();
           }).catch(function (e) { toast(e.message, 'err'); });
         }
@@ -3234,10 +3432,12 @@ var VIEW_ICO = {
       SB.get('activity_log', scope('activity_log', { select: 'text,created_at,user_id', order: 'created_at.desc', limit: '10' })).catch(function () { return []; }),
       SB.get('admins', scope('admins', { select: 'id,name,username' })).catch(function () { return []; }),
       SB.get('orders', scope('orders', { select: 'id,status' })).catch(function () { return []; }),
-      getSettings().catch(function () { return null; })
+      getSettings().catch(function () { return null; }),
+      loadPlan()
     ]).then(function (r) {
       var prod = r[0], cats = r[1], log = r[2] || [], admins = r[3] || [], orders = r[4] || [], settings = r[5] || {};
       var settingsOk = r[5] != null;
+      var usage = currentUsage(prod);
       draw();
 
       function draw() {
@@ -3281,6 +3481,7 @@ var VIEW_ICO = {
                 '<button type="button" class="btn" data-tab="pedidos">Ver pedidos</button>' +
               '</div>' +
             '</header>' +
+            planCardHtml(usage) +
             '<div class="dash-stats">' +
               stat({ tab: 'productos', icon: 'productos', tone: 'brand', value: nProd, label: 'Productos', meta: visibleMeta(normal) }) +
               stat({ tab: 'combos', icon: 'combos', tone: 'blue', value: nCombo, label: 'Combos', meta: visibleMeta(combos) }) +
