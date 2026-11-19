@@ -751,58 +751,43 @@
                     name: 'Gabinete',
                     label: 'Gabinete',
                     icon: ICONS.case,
-                    parts: [
-                        { id: 'case-lianli', name: 'Gabinete Lian Li O11 Dynamic EVO dual chamber', short: 'Lian Li O11 EVO', price: 169, img: 'assets/img/products/p-12.webp' }
-                    ]
+                    parts: []
                 },
                 cpu: {
                     name: 'Procesador',
                     label: 'CPU',
                     icon: ICONS.cpu,
-                    parts: [
-                        { id: 'cpu-amd', name: 'AMD Ryzen 7 7800X3D 8 núcleos AM5', short: 'Ryzen 7 7800X3D', price: 389, img: 'assets/img/products/p-2.webp' },
-                        { id: 'cpu-intel', name: 'Intel Core i7-14700K 20 núcleos LGA1700', short: 'Core i7-14700K', price: 409, img: 'assets/img/products/p-7.webp' }
-                    ]
+                    parts: []
                 },
                 mb: {
                     name: 'Tarjeta Madre',
                     label: 'Placa madre',
                     icon: ICONS.mb,
-                    parts: [
-                        { id: 'mb-z790', name: 'ASUS ROG Strix Z790-A Gaming WiFi DDR5', short: 'Z790-A Strix', price: 329, img: 'assets/img/products/p-8.webp' }
-                    ]
+                    parts: []
                 },
                 ram: {
                     name: 'Memoria RAM',
                     label: 'RAM',
                     icon: ICONS.ram,
-                    parts: [
-                        { id: 'ram-32', name: 'Corsair Vengeance RGB 32GB DDR5 6000MHz', short: '32GB DDR5 RGB', price: 119, img: 'assets/img/products/p-9.webp' }
-                    ]
+                    parts: []
                 },
                 gpu: {
                     name: 'Tarjeta de Video',
                     label: 'GPU',
                     icon: ICONS.gpu,
-                    parts: [
-                        { id: 'gpu-4070', name: 'NVIDIA RTX 4070 Super 12GB GDDR6X', short: 'RTX 4070 Super', price: 799, img: 'assets/img/products/p-1.webp' }
-                    ]
+                    parts: []
                 },
                 psu: {
                     name: 'Fuente de Poder',
                     label: 'Fuente',
                     icon: ICONS.psu,
-                    parts: [
-                        { id: 'psu-850', name: 'Corsair RM850x 850W 80 Plus Gold', short: 'RM850x 850W', price: 139, img: 'assets/img/products/p-11.webp' }
-                    ]
+                    parts: []
                 },
                 cooler: {
                     name: 'Enfriamiento',
                     label: 'Refrigeración',
                     icon: ICONS.cooler,
-                    parts: [
-                        { id: 'cooler-aio', name: 'Refrigeración NZXT Kraken 360 RGB AIO', short: 'Kraken 360 RGB', price: 189, img: 'assets/img/products/p-13.webp' }
-                    ]
+                    parts: []
                 }
             };
 
@@ -1014,7 +999,7 @@
                     id: 'custom-' + Date.now(),
                     name: 'PC a medida (3) @ ' + items.map(function (p) { return p.short; }).join(' + '),
                     price: total,
-                    img: (picks.case ? picks.case.img : 'assets/img/products/p-12.webp')
+                    img: (picks.case ? picks.case.img : '')
                 });
                 var btn = addCart;
                 btn.innerHTML = '¡Agregado!';

@@ -355,10 +355,40 @@
     card.style.display = p.hidden ? 'none' : '';
   }
 
+  var CARD_TPL =
+    '<div class="product-card p-3 sm:p-5 flex flex-col justify-between relative group">' +
+      '<div class="relative z-10">' +
+        '<div class="w-full h-32 sm:h-44 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">' +
+          '<img src="" alt="" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">' +
+          '<span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow" style="display:none"></span>' +
+        '</div>' +
+        '<h4 class="product-name"></h4>' +
+        '<p class="product-sub"></p>' +
+      '</div>' +
+      '<div class="relative z-10 flex items-center justify-between mt-3 pt-3 border-t border-gray-100">' +
+        '<span class="text-gray-900 font-extrabold text-base"></span>' +
+      '</div>' +
+      '<button class="absolute bottom-2 right-2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 hover:bg-purple-600 text-purple-600 hover:text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer" title="Agregar al carrito" aria-label="Agregar al carrito">' +
+        '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
+      '</button>' +
+    '</div>';
+
   function hydrateGrid(grid, products) {
     if (!grid || !products) return;
     var cards = Array.prototype.slice.call(grid.querySelectorAll('.product-card'));
-    if (!cards.length) return;
+    if (!cards.length) {
+      grid.innerHTML = '';
+      if (!products.length) { grid.hidden = true; return; }
+      var tpl = document.createElement('template');
+      tpl.innerHTML = CARD_TPL;
+      products.forEach(function (p) {
+        var card = tpl.content.firstElementChild.cloneNode(true);
+        fillProduct(card, p);
+        grid.appendChild(card);
+      });
+      grid.hidden = false;
+      return;
+    }
     var tpl = cards[0].cloneNode(true);
     products.forEach(function (p, i) {
       var card = cards[i] || tpl.cloneNode(true);
@@ -434,10 +464,44 @@
     card.style.display = c.hidden ? 'none' : '';
   }
 
+  var COMBO_TPL =
+    '<article class="combo-card">' +
+      '<div class="combo-top">' +
+        '<div class="combo-cpu">' +
+          '<span class="combo-cpu-line1"></span>' +
+          '<span class="combo-cpu-line2"></span>' +
+        '</div>' +
+        '<span class="combo-tag">Combo</span>' +
+      '</div>' +
+      '<div class="combo-main">' +
+        '<div class="combo-imgwrap">' +
+          '<img class="combo-case" src="" alt="" loading="lazy" decoding="async">' +
+        '</div>' +
+        '<ul class="combo-specs"></ul>' +
+      '</div>' +
+      '<div class="combo-foot">' +
+        '<span class="combo-price"></span>' +
+        '<button class="combo-add" type="button" title="Agregar al carrito" aria-label="Agregar al carrito">' +
+          '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</article>';
+
   function hydrateCombos(track, combos) {
     if (!track || !combos) return;
     var cards = Array.prototype.slice.call(track.querySelectorAll('.combo-card'));
-    if (!cards.length) return;
+    if (!cards.length) {
+      track.innerHTML = '';
+      if (!combos.length) return;
+      var tpl = document.createElement('template');
+      tpl.innerHTML = COMBO_TPL;
+      combos.forEach(function (c) {
+        var card = tpl.content.firstElementChild.cloneNode(true);
+        fillCombo(card, c);
+        track.appendChild(card);
+      });
+      return;
+    }
     var tpl = cards[0].cloneNode(true);
     combos.forEach(function (c, i) {
       var card = cards[i] || tpl.cloneNode(true);
@@ -564,6 +628,8 @@
     hydrateGrid(document.getElementById('homeGrid'), items);
     hydrateGrid(document.getElementById('crGrid'), items);
     hydrateCombos(document.getElementById('comboTrack'), combos);
+    var combosSec = document.getElementById('combos');
+    if (combosSec && !combos.length) combosSec.style.display = 'none';
     bindSearch();
 
     window.dispatchEvent(new CustomEvent('gh:ready'));

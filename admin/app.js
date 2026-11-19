@@ -1,5 +1,5 @@
 /*
- * app.js  -  Panel de administración MANIAWORLD (Supabase)
+ * app.js  -  Panel de administración OX1 WhatShop (Supabase)
  * Vanilla JS, sin dependencias. Usa window.GigaSB (assets/js/sb.js).
  */
 (function () {
@@ -1581,9 +1581,9 @@ var VIEW_ICO = {
   // Mismo texto que mostraba la ficha antes (editable; si lo vacías, la
   // sección "Descripción" deja de salir en la tienda).
   var DEFAULT_PRODUCT_DESCRIPTION = [
-    'Seleccionado por el equipo técnico de MANIAWORLD y probado en banco de pruebas antes de salir a la venta, garantizando rendimiento estable, temperaturas controladas y compatibilidad verificada con los estándares actuales de la industria.',
+    'Seleccionado por el equipo técnico de OX1 WhatShop y probado en banco de pruebas antes de salir a la venta, garantizando rendimiento estable, temperaturas controladas y compatibilidad verificada con los estándares actuales de la industria.',
     'El producto se entrega nuevo y sellado de fábrica, con su empaque original, manuales, accesorios completos y certificados de cumplimiento. Incluye garantía de 12 meses por fallas de fabricación, asistencia técnica especializada para la instalación y configuración inicial, así como soporte postventa directo por WhatsApp con nuestro personal en zulia.',
-    'MANIAWORLD despacha a domicilio a toda Venezuela: zulia (24-48h), Valencia y Maracaibo (48-72h) y resto del país de 3 a 5 días hábiles. Aceptamos transferencia bancaria, Pago Móvil, Zelle, tarjetas de crédito y débito, así como pago contra entrega en zonas cubiertas. Consulta disponibilidad exacta, descuentos por cantidad y opciones de financiamiento antes de finalizar tu compra.',
+    'OX1 WhatShop despacha a domicilio a toda Venezuela: zulia (24-48h), Valencia y Maracaibo (48-72h) y resto del país de 3 a 5 días hábiles. Aceptamos transferencia bancaria, Pago Móvil, Zelle, tarjetas de crédito y débito, así como pago contra entrega en zonas cubiertas. Consulta disponibilidad exacta, descuentos por cantidad y opciones de financiamiento antes de finalizar tu compra.',
     '¿Dudas sobre compatibilidad con tu equipo actual? Escríbenos antes de comprar y te asesoramos con la instalación, la actualización de firmware y las mejores alternativas de precio dentro del catálogo de la tienda.'
   ].join('\n\n');
 
@@ -3594,7 +3594,7 @@ var VIEW_ICO = {
         .then(function (pairs) {
           var out = { exported_at: new Date().toISOString(), store_id: sid(), data: {} };
           pairs.forEach(function (p) { out.data[p[0]] = p[1]; });
-          downloadBlob('maniaworld-backup-' + Date.now() + '.json', JSON.stringify(out, null, 2), 'application/json');
+          downloadBlob('ox1-whatshop-backup-' + Date.now() + '.json', JSON.stringify(out, null, 2), 'application/json');
           toast('Backup descargado', 'ok');
         }).catch(function (e) { toast(e.message, 'err'); });
     });
@@ -3660,7 +3660,7 @@ var VIEW_ICO = {
   }
 
   var TABS = [
-    { k: 'dashboard', l: 'Panel', grp: 'General', svg: 'dashboard', render: renderDashboard },
+    { k: 'dashboard', l: 'Panel OX1 WhatShop', grp: 'General', svg: 'dashboard', render: renderDashboard },
     { k: 'productos', l: 'Productos', grp: 'Catálogo', svg: 'productos', render: renderProducts },
     { k: 'combos', l: 'Combos', grp: 'Catálogo', svg: 'combos', render: renderCombos },
     { k: 'categorias', l: 'Categorías', grp: 'Catálogo', svg: 'categorias', render: function (m) { renderEntityList('categories', m); } },

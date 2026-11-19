@@ -475,20 +475,7 @@ select * from (values
 ) as v(key, name, label, icon, position)
 where not exists (select 1 from public.builder_slots);
 
-insert into public.builder_parts (slot_id, name, short, price, image, position)
-select s.id, x.name, x.short, x.price, x.image, x.pos
-from (values
-  ('case',   'Gabinete Lian Li O11 Dynamic EVO dual chamber', 'Lian Li O11 EVO',   169, 'assets/img/products/p-12.webp',  0),
-  ('cpu',    'AMD Ryzen 7 7800X3D 8 núcleos AM5',             'Ryzen 7 7800X3D',   389, 'assets/img/products/p-2.webp',   0),
-  ('cpu',    'Intel Core i7-14700K 20 núcleos LGA1700',        'Core i7-14700K',    409, 'assets/img/products/p-7.webp',   1),
-  ('mb',     'ASUS ROG Strix Z790-A Gaming WiFi DDR5',         'Z790-A Strix',      329, 'assets/img/products/p-8.webp',   0),
-  ('ram',    'Corsair Vengeance RGB 32GB DDR5 6000MHz',        '32GB DDR5 RGB',     119, 'assets/img/products/p-9.webp',  0),
-  ('gpu',    'NVIDIA RTX 4070 Super 12GB GDDR6X',              'RTX 4070 Super',    799, 'assets/img/products/p-1.webp',   0),
-  ('psu',    'Corsair RM850x 850W 80 Plus Gold',               'RM850x 850W',       139, 'assets/img/products/p-11.webp',  0),
-  ('cooler', 'Refrigeración NZXT Kraken 360 RGB AIO',          'Kraken 360 RGB',    189, 'assets/img/products/p-13.webp', 0)
-) as x(slot_key, name, short, price, image, pos)
-join public.builder_slots s on s.key = x.slot_key
-where not exists (select 1 from public.builder_parts);
+-- Las piezas del armador se cargan desde el panel. No se insertan ejemplos.
 
 -- ============================================================
 -- 5. PERFIL DEL ADMIN (rol owner)
