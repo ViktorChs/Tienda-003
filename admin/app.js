@@ -3241,69 +3241,6 @@ var VIEW_ICO = {
   }
 
   /* =========================================================
-   *  Tiendas (solo owner)
-   * ========================================================= */
-  function renderStores(mount) {
-    var run = function () {
-      mount.innerHTML = skeleton(3);
-      SB.get('stores', { select: '*', order: 'id.asc' }).then(function (rows) {
-        draw();
-
-        function draw() {
-          mount.innerHTML =
-            '<div class="card"><h3>Tiendas</h3><p class="desc mb0">Cada tienda tiene su propio catálogo, tema, armador y panel. Comparten base de datos.</p></div>' +
-            '<div class="card" style="padding:0;overflow:auto"><table class="responsive"><thead><tr><th>#</th><th>Nombre</th><th>Slug</th><th>Estado</th><th>Panel</th></tr></thead><tbody>' +
-              rows.map(function (s) {
-                return '<tr><td data-label="ID">' + esc(s.id) + '</td>' +
-                  '<td data-label="Nombre"><strong>' + esc(s.name) + '</strong></td>' +
-                  '<td data-label="Slug"><code>' + esc(s.slug) + '</code></td>' +
-                  '<td data-label="Estado">' + (s.active ? '<span class="tag on">Activa</span>' : '<span class="tag off">Suspendida</span>') + '</td>' +
-                  '<td data-label="Panel">' + (Number(s.id) === sid() ? '<span class="tag">Panel actual</span>' : '<span class="muted">Otro repositorio</span>') + '</td></tr>';
-              }).join('') + '</tbody></table></div>' +
-            '<div class="card"><h3>Crear tienda</h3>' +
-              '<p class="desc">Clona configuración, temas, navegación y armador de la tienda actual. El catálogo arranca vacío.</p>' +
-              '<div class="row">' +
-                '<div class="field"><label>Nombre</label><input id="stName" maxlength="80" placeholder="Tienda 004"></div>' +
-                '<div class="field"><label>Slug</label><input id="stSlug" maxlength="40" placeholder="tienda-004"></div>' +
-              '</div>' +
-              '<button type="button" class="btn primary" id="stCreate">Crear tienda</button>' +
-              '<p class="help" style="margin-top:12px">Después crea el usuario en Supabase Auth y asígnale un perfil en <code>admins</code> con el <code>store_id</code> nuevo. El panel de esa tienda se despliega desde su propio repositorio con <code>STORE_ID</code> ajustado en <code>assets/js/config.js</code>.</p>' +
-            '</div>';
-          $('#stCreate', mount).addEventListener('click', createStore);
-        }
-
-        function createStore() {
-          var name = $('#stName', mount).value.trim();
-          var slug = $('#stSlug', mount).value.trim().toLowerCase();
-          if (!name) return toast('Escribe un nombre', 'err');
-          if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(slug)) return toast('Slug no válido (minúsculas, números y guiones)', 'err');
-          var btn = $('#stCreate', mount);
-          btn.disabled = true;
-          SB.rpc('create_store', { p_slug: slug, p_name: name, p_source: sid() }).then(function (id) {
-            var newId = Array.isArray(id) ? id[0] : id;
-            toast('Tienda creada', 'ok');
-            logActivity('Creó la tienda ' + name + ' (#' + newId + ')');
-            rows = rows.concat([{ id: newId, name: name, slug: slug, active: true }]);
-            draw();
-            openModal({
-              title: 'Tienda creada',
-              body: '<p>La tienda <strong>' + esc(name) + '</strong> quedó con el id <strong>' + esc(newId) + '</strong>.</p>' +
-                '<p class="muted">Para darle acceso: crea el usuario en <strong>Supabase → Authentication → Users</strong> y ejecuta en SQL Editor:</p>' +
-                '<pre style="white-space:pre-wrap;font-size:12px;background:rgba(0,0,0,.06);padding:12px;border-radius:8px">insert into public.admins (id, name, username, role, active, store_id)\nvalues (\'UUID-DEL-USUARIO\', \'Owner\', \'owner\', \'owner\', true, ' + esc(newId) + ');</pre>' +
-                '<p class="muted mb0">Luego despliega el repositorio de esa tienda con <code>STORE_ID: ' + esc(newId) + '</code> en <code>assets/js/config.js</code>.</p>',
-              buttons: [{ label: 'Entendido', class: 'primary', onClick: closeModal }]
-            });
-          }).catch(function (e) {
-            btn.disabled = false;
-            toast(e.message, 'err');
-          });
-        }
-      }).catch(function (e) { errorState(mount, e, run); });
-    };
-    run();
-  }
-
-  /* =========================================================
    *  Pedidos
    * ========================================================= */
   var ORDER_STATUS = ['nuevo', 'en_proceso', 'pagado', 'entregado', 'cancelado'];
@@ -3651,7 +3588,6 @@ var VIEW_ICO = {
     apariencia: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
     pedidos: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><path d="M6 16h.01M18 16h.01"/>',
     usuarios: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    tiendas: '<path d="M3 9 5 3h14l2 6"/><path d="M3 9h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-6h6v6"/>',
     backup: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
     portada: '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>'
   };
@@ -3671,7 +3607,6 @@ var VIEW_ICO = {
     { k: 'apariencia', l: 'Apariencia', grp: 'Tienda', svg: 'apariencia', render: renderApariencia },
     { k: 'temas', l: 'Temas / Festivos', grp: 'Tienda', svg: 'temas', render: renderThemes },
     { k: 'pedidos', l: 'Pedidos', grp: 'Ventas', svg: 'pedidos', render: renderOrders },
-    { k: 'tiendas', l: 'Tiendas', grp: 'Sistema', svg: 'tiendas', render: renderStores, ownerOnly: true },
     { k: 'usuarios', l: 'Usuarios', grp: 'Sistema', svg: 'usuarios', render: renderUsers, ownerOnly: true },
     { k: 'backup', l: 'Backup', grp: 'Sistema', svg: 'backup', render: renderBackup }
   ];

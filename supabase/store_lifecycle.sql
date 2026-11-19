@@ -279,7 +279,8 @@ begin
 end;
 $$;
 
-grant execute on function public.create_store(text,text,bigint) to authenticated, service_role;
+revoke execute on function public.create_store(text,text,bigint) from public, anon, authenticated;
+grant execute on function public.create_store(text,text,bigint) to service_role;
 
 -- 6) Semilla idempotente de Tienda 002 y 003 (vacias, configuradas)
 do $$
