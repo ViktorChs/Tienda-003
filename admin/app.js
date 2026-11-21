@@ -2786,18 +2786,18 @@ var VIEW_ICO = {
     footerDarkDivider: '#3a2c6b'
   };
   var COLOR_LABELS = {
-    brand: 'Color de marca',
-    brandDark: 'Marca (oscuro)',
-    brandLight: 'Marca (claro)',
-    accent: 'Acento',
+    brand: 'Color principal (botones y enlaces)',
+    brandDark: 'Color principal al pasar el mouse',
+    brandLight: 'Color principal suave (detalles)',
+    accent: 'Color de acento',
     bg: 'Fondo de la página',
     surface: 'Fondo de paneles',
     cardBg: 'Fondo de tarjetas de producto',
     text: 'Color de texto',
-    darkBg: 'Fondo (modo oscuro)',
-    darkSurface: 'Paneles (modo oscuro)',
-    cardBgDark: 'Fondo de productos (oscuro)',
-    darkText: 'Texto (modo oscuro)',
+    darkBg: 'Fondo de la página (noche)',
+    darkSurface: 'Fondo de paneles (noche)',
+    cardBgDark: 'Fondo de tarjetas de producto (noche)',
+    darkText: 'Color de texto (noche)',
     footerDarkFrom: 'Footer oscuro · inicio',
     footerDarkTo: 'Footer oscuro · final',
     footerDarkBorder: 'Footer oscuro · borde superior',
@@ -2805,96 +2805,8 @@ var VIEW_ICO = {
   };
 
   function renderThemes(mount) {
-    mount.innerHTML = '<div class="loading"><span class="spinner"></span> Cargando…</div>';
-    Promise.all([load('themes', { select: '*', order: 'id.asc' }), getSettings()])
-      .then(function (r) { draw(r[0], r[1]); })
-      .catch(function (e) { mount.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; });
-
-    function draw(themes, s) {
-      var holiday = s.holiday || {};
-      var defTheme = ((s.store || {}).defaultTheme === 'dark') ? 'dark' : 'light';
-      var html = '<div class="card"><h3>Tema predeterminado de la tienda</h3>' +
-        '<p class="desc">Es el tema con el que abre la tienda la primera vez. Si el cliente pulsa el botón de modo oscuro, su elección se guarda en su navegador y se mantiene.</p>' +
-        '<div class="theme-default-choices">' +
-        '<button type="button" class="theme-default-btn' + (defTheme === 'light' ? ' active' : '') + '" data-default-theme="light" aria-pressed="' + (defTheme === 'light') + '">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>' +
-        '<span><strong>Claro</strong><em>Fondo blanco por defecto</em></span></button>' +
-        '<button type="button" class="theme-default-btn' + (defTheme === 'dark' ? ' active' : '') + '" data-default-theme="dark" aria-pressed="' + (defTheme === 'dark') + '">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>' +
-        '<span><strong>Oscuro</strong><em>Fondo oscuro por defecto</em></span></button>' +
-        '</div></div>';
-
-      html += '<div class="card"><h3>Modo festivo</h3><p class="desc">Cuando está activo (y dentro de las fechas), anula el tema por defecto.</p>' +
-        '<div class="check"><input type="checkbox" id="h_active"' + (holiday.active ? ' checked' : '') + '><span>Activado</span></div>' +
-        '<div class="row" style="margin-top:12px">' +
-        sel('h_mode', 'Tema festivo', themes.map(function (t) { return [t.key, t.label]; }), holiday.mode || 'none', true) +
-        fld('h_start', 'Desde', holiday.startDate, 'date') + fld('h_end', 'Hasta', holiday.endDate, 'date') + '</div>' +
-        '<hr style="border:0;border-top:1px solid var(--border);margin:16px 0">' +
-        '<div class="check"><input type="checkbox" id="h_banner_en"' + ((holiday.banner || {}).enabled ? ' checked' : '') + '><span>Mostrar banner</span></div>' +
-        '<div class="row" style="margin-top:10px">' + fld('h_banner_text', 'Texto del banner', (holiday.banner || {}).text) + fld('h_banner_link', 'Enlace del banner', (holiday.banner || {}).link) + '</div>' +
-        '<div class="spread" style="margin-top:12px"><div class="check"><input type="checkbox" id="h_snow"' + ((holiday.decorations || {}).snow ? ' checked' : '') + '><span>Nieve ❄</span></div>' +
-        '<div class="check"><input type="checkbox" id="h_bats"' + ((holiday.decorations || {}).bats ? ' checked' : '') + '><span>Murciélagos 🦇</span></div></div>' +
-        '<button class="btn primary" id="saveHoliday" style="margin-top:16px">Guardar festivo</button></div>';
-
-      html += '<div class="card"><h3>Temas</h3><p class="desc">Elige el tema activo. Los colores y efectos se editan en la pestaña <strong>Apariencia</strong>.</p>' +
-        '<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><button class="btn sm" id="goApariencia" type="button">Ir a Apariencia</button></div>' +
-        // goApariencia wired below
-        '<table class="responsive"><tbody>' +
-        themes.map(function (t) {
-          return '<tr><td data-label="Tema"><strong>' + esc(t.label) + '</strong> <span class="muted">(' + esc(t.key) + ')</span></td>' +
-            '<td data-label="Activo"><label class="check"><input type="radio" name="activeTheme" data-active="' + esc(t.id) + '"' + (t.is_active ? ' checked' : '') + '><span>Activo</span></label></td></tr>';
-        }).join('') +
-        '</tbody></table></div>';
-        mount.innerHTML = html;
-        var ga = $('#goApariencia', mount); if (ga) ga.addEventListener('click', function () { switchTab('apariencia'); });
-
-        $all('[data-default-theme]', mount).forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var t = btn.getAttribute('data-default-theme') === 'dark' ? 'dark' : 'light';
-            s.store = s.store || {};
-            s.store.defaultTheme = t;
-            $all('[data-default-theme]', mount).forEach(function (b) {
-              var on = b === btn;
-              b.classList.toggle('active', on);
-              b.setAttribute('aria-pressed', String(on));
-            });
-            try { localStorage.setItem('gh_store_default_theme', t); } catch (e) {}
-            SB.upsert('settings', { store_id: sid(), data: s, updated_at: new Date().toISOString() }, 'store_id')
-              .then(function () { toast('Tema de la tienda guardado: ' + (t === 'dark' ? 'oscuro' : 'claro'), 'ok'); })
-              .catch(function (e) { toast(e.message, 'err'); });
-          });
-        });
-
-        $('#saveHoliday', mount).addEventListener('click', function () {
-        s.holiday = {
-          active: $('#h_active').checked,
-          mode: $('#h_mode').value,
-          startDate: $('#h_start').value,
-          endDate: $('#h_end').value,
-          banner: { enabled: $('#h_banner_en').checked, text: $('#h_banner_text').value.trim(), link: $('#h_banner_link').value.trim() },
-          decorations: { snow: $('#h_snow').checked, bats: $('#h_bats').checked }
-        };
-        SB.upsert('settings', { store_id: sid(), data: s, updated_at: new Date().toISOString() }, 'store_id')
-          .then(function () { toast('Modo festivo guardado', 'ok'); }).catch(function (e) { toast(e.message, 'err'); });
-      });
-
-      $all('[data-active]', mount).forEach(function (rad) {
-        rad.addEventListener('change', function () {
-          var tid = rad.dataset.active;
-          Promise.all(themes.map(function (t) {
-            return SB.update('themes', { id: 'eq.' + t.id }, { is_active: String(t.id) === String(tid) });
-          })).then(function () { toast('Tema activo actualizado', 'ok'); }).catch(function (e) { toast(e.message, 'err'); });
-        });
-      });
-    }
-    function fld(name, label, v, type) {
-      return '<div class="field"><label>' + esc(label) + '</label><input type="' + (type || 'text') + '" id="' + name + '" value="' + esc(v == null ? '' : v) + '"></div>';
-    }
-    function sel(name, label, opts, v, allowNone) {
-      var o = allowNone ? '<option value="none">— ninguno —</option>' : '';
-      o += opts.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (String(x[0]) === String(v) ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('');
-      return '<div class="field"><label>' + esc(label) + '</label><select id="' + name + '">' + o + '</select></div>';
-    }
+    PENDING.apariencia = { pane: 'tematica' };
+    switchTab('apariencia');
   }
 
   /* =========================================================
@@ -2924,7 +2836,19 @@ var VIEW_ICO = {
       function glowAlpha(id, label, value, def) {
         return '<div class="field mb0"><label>' + esc(label) + '</label><input type="number" min="0" max="1" step="0.05" id="' + id + '" value="' + esc(value != null ? value : def) + '"></div>';
       }
-      var html = '<div class="card"><h3>Fondo y destellos de la portada</h3>' +
+      function fld(name, label, v, type) {
+        return '<div class="field"><label>' + esc(label) + '</label><input type="' + (type || 'text') + '" id="' + name + '" value="' + esc(v == null ? '' : v) + '"></div>';
+      }
+      function sel(name, label, opts, v, allowNone) {
+        var o = allowNone ? '<option value="none">— ninguno —</option>' : '';
+        o += opts.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (String(x[0]) === String(v) ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('');
+        return '<div class="field"><label>' + esc(label) + '</label><select id="' + name + '">' + o + '</select></div>';
+      }
+      var pending = PENDING.apariencia || null;
+      PENDING.apariencia = null;
+      var startPane = (pending && pending.pane) || 'fondo';
+      if (['fondo', 'colores', 'tematica'].indexOf(startPane) < 0) startPane = 'fondo';
+      var fondoHtml = '<div class="card"><h3>Fondo y destellos de la portada</h3>' +
         '<p class="desc">Elige hexágonos animados, una imagen, otro efecto o sin fondo. Los destellos son los cuatro brillos en las esquinas; puedes cambiar sus colores o desactivarlos por completo. El logo se configura en <strong>Home / Contenido → Portada</strong>.</p>' +
         '<div class="row">' +
           '<div class="field"><label>Tipo de fondo</label><select id="cvKind">' +
@@ -2979,21 +2903,46 @@ var VIEW_ICO = {
           glowAlpha('glowAlphaDark', 'Intensidad (oscuro)', cvGlow.alphaDark, 0.38) +
         '</div>' +
         '<button class="btn primary" id="cvSave" type="button" style="margin-top:10px">Guardar portada</button>' +
-        '</div>' +
-        '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro". <strong>Fondo de tarjetas de producto</strong> y <strong>Fondo de productos (oscuro)</strong> cambian el fondo de las tarjetas; marca <strong>Tarjetas transparentes</strong> si quieres ver el fondo de la página a través de ellas. Los cuatro colores de <strong>Footer oscuro</strong> controlan el degradado, el borde superior y el divisor interior del pie de página.</p>' +
-        '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><button class="btn sm" id="goTemas" type="button">Ir a Temas / Festivos</button></div>';
+        '</div>';
+
+      var holiday = settings.holiday || {};
+      var defTheme = ((settings.store || {}).defaultTheme === 'dark') ? 'dark' : 'light';
+      var defaultThemeCard = '<div class="card"><h3>Tema por defecto de la tienda</h3>' +
+        '<p class="desc">Es el tema con el que abre la tienda la primera vez. Si el cliente pulsa el botón de modo oscuro, su elección se guarda en su navegador y se mantiene.</p>' +
+        '<div class="theme-default-choices">' +
+        '<button type="button" class="theme-default-btn' + (defTheme === 'light' ? ' active' : '') + '" data-default-theme="light" aria-pressed="' + (defTheme === 'light') + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>' +
+        '<span><strong>Claro</strong><em>Fondo blanco por defecto</em></span></button>' +
+        '<button type="button" class="theme-default-btn' + (defTheme === 'dark' ? ' active' : '') + '" data-default-theme="dark" aria-pressed="' + (defTheme === 'dark') + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>' +
+        '<span><strong>Oscuro</strong><em>Fondo oscuro por defecto</em></span></button>' +
+        '</div></div>';
+
+      var LIGHT_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'bg', 'surface', 'cardBg', 'text'];
+      var DARK_KEYS = ['darkBg', 'darkSurface', 'cardBgDark', 'darkText', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
+      function colorInputs(keys, c, mode) {
+        return keys.map(function (k) {
+          var val = c[k] === 'transparent' ? (COLOR_DEFAULTS[k] || '#ffffff') : (c[k] || COLOR_DEFAULTS[k] || '#7c3aed');
+          return '<div class="field mb0"><label>' + esc(COLOR_LABELS[k] || k) + '</label><input type="color" data-color="' + k + '" value="' + esc(val) + '"></div>';
+        }).join('');
+      }
+      var coloresHtml = defaultThemeCard + '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Usa <strong>Claro</strong> y <strong>Noche</strong> para editar cada vista por separado. El botón de modo de la tienda decide cuál se muestra. El color principal y sus variantes se comparten en ambas vistas.</p>';
       themes.forEach(function (t) {
         var c = t.colors || {};
         var fx = (t.decorations || {}).fx || {};
-        html += '<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px" data-theme="' + esc(t.id) + '">' +
+        coloresHtml += '<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px" data-theme="' + esc(t.id) + '" data-mode="light">' +
           '<div class="spread"><strong>' + esc(t.label) + '</strong>' + (t.is_active ? '<span class="badge" style="position:static">Activo</span>' : '') + '</div>' +
-          '<div class="row" style="margin-top:10px">' + COLOR_KEYS.map(function (k) {
-            var val = c[k] === 'transparent' ? (COLOR_DEFAULTS[k] || '#ffffff') : (c[k] || COLOR_DEFAULTS[k] || '#7c3aed');
-            return '<div class="field mb0"><label>' + esc(COLOR_LABELS[k] || k) + '</label><input type="color" data-color="' + k + '" value="' + esc(val) + '"></div>';
-          }).join('') + '</div>' +
-          '<div class="row" style="margin-top:8px">' +
-            '<label class="check mb0"><input type="checkbox" data-transparent="cardBg"' + (c.cardBg === 'transparent' ? ' checked' : '') + '><span>Tarjetas transparentes (modo claro)</span></label>' +
-            '<label class="check mb0"><input type="checkbox" data-transparent="cardBgDark"' + (c.cardBgDark === 'transparent' ? ' checked' : '') + '><span>Tarjetas transparentes (modo oscuro)</span></label>' +
+          '<div class="subnav" role="tablist" style="margin-top:10px">' +
+            '<button class="subnav-btn active" data-tmode="light" type="button" role="tab">Claro</button>' +
+            '<button class="subnav-btn" data-tmode="dark" type="button" role="tab">Noche</button>' +
+          '</div>' +
+          '<div class="tmode-pane" data-tmode-pane="light">' +
+            '<div class="row" style="margin-top:10px">' + colorInputs(LIGHT_KEYS, c, 'light') + '</div>' +
+            '<div class="row" style="margin-top:8px"><label class="check mb0"><input type="checkbox" data-transparent="cardBg"' + (c.cardBg === 'transparent' ? ' checked' : '') + '><span>Tarjetas transparentes</span></label></div>' +
+          '</div>' +
+          '<div class="tmode-pane" data-tmode-pane="dark" hidden>' +
+            '<div class="row" style="margin-top:10px">' + colorInputs(DARK_KEYS, c, 'dark') + '</div>' +
+            '<div class="row" style="margin-top:8px"><label class="check mb0"><input type="checkbox" data-transparent="cardBgDark"' + (c.cardBgDark === 'transparent' ? ' checked' : '') + '><span>Tarjetas transparentes</span></label></div>' +
           '</div>' +
           '<div class="spread" style="margin-top:12px"><strong style="font-size:13px">Partículas</strong>' +
             '<div class="row">' +
@@ -3026,9 +2975,43 @@ var VIEW_ICO = {
             '</div></div>' +
           '<button class="btn" data-save-theme="' + esc(t.id) + '" style="margin-top:10px">Guardar paleta y efectos</button></div>';
       });
-      html += '</div>';
+      coloresHtml += '</div>';
+
+      var tematicaHtml = '<div class="card"><h3>Temática especial</h3><p class="desc">Activa una temática por fechas: anula el tema por defecto mientras esté vigente. Aquí eliges <strong>Navidad</strong> o <strong>Halloween</strong> y su banner.</p>' +
+        '<div class="check"><input type="checkbox" id="h_active"' + (holiday.active ? ' checked' : '') + '><span>Activado</span></div>' +
+        '<div class="row" style="margin-top:12px">' +
+        sel('h_mode', 'Temática', themes.map(function (t) { return [t.key, t.label]; }), holiday.mode || 'none', true) +
+        fld('h_start', 'Desde', holiday.startDate, 'date') + fld('h_end', 'Hasta', holiday.endDate, 'date') + '</div>' +
+        '<hr style="border:0;border-top:1px solid var(--border);margin:16px 0">' +
+        '<div class="check"><input type="checkbox" id="h_banner_en"' + ((holiday.banner || {}).enabled ? ' checked' : '') + '><span>Mostrar banner</span></div>' +
+        '<div class="row" style="margin-top:10px">' + fld('h_banner_text', 'Texto del banner', (holiday.banner || {}).text) + fld('h_banner_link', 'Enlace del banner', (holiday.banner || {}).link) + '</div>' +
+        '<div class="spread" style="margin-top:12px"><div class="check"><input type="checkbox" id="h_snow"' + ((holiday.decorations || {}).snow ? ' checked' : '') + '><span>Nieve ❄</span></div>' +
+        '<div class="check"><input type="checkbox" id="h_bats"' + ((holiday.decorations || {}).bats ? ' checked' : '') + '><span>Murciélagos 🦇</span></div></div>' +
+        '<button class="btn primary" id="saveHoliday" style="margin-top:16px">Guardar temática</button></div>' +
+        '<div class="card"><h3>Tema activo</h3><p class="desc">Elige cuál de los temas se usa como base de la tienda.</p>' +
+        '<table class="responsive"><tbody>' +
+        themes.map(function (t) {
+          return '<tr><td data-label="Tema"><strong>' + esc(t.label) + '</strong> <span class="muted">(' + esc(t.key) + ')</span></td>' +
+            '<td data-label="Activo"><label class="check"><input type="radio" name="activeTheme" data-active="' + esc(t.id) + '"' + (t.is_active ? ' checked' : '') + '><span>Activo</span></label></td></tr>';
+        }).join('') +
+        '</tbody></table></div>';
+
+      var apPanes = [
+        { k: 'fondo', l: 'Fondo y destellos de la portada', html: fondoHtml },
+        { k: 'colores', l: 'Colores y tema', html: coloresHtml },
+        { k: 'tematica', l: 'Temática especial', html: tematicaHtml }
+      ];
+      var html = '<div class="subnav" data-ap-subnav role="tablist">' +
+        apPanes.map(function (p) { return '<button class="subnav-btn' + (p.k === startPane ? ' active' : '') + '" data-ap-tab="' + p.k + '" type="button" role="tab">' + esc(p.l) + '</button>'; }).join('') +
+        '</div>' +
+        apPanes.map(function (p) { return '<div class="hpane" data-ap-pane="' + p.k + '"' + (p.k === startPane ? '' : ' hidden') + '>' + p.html + '</div>'; }).join('');
       mount.innerHTML = html;
-      var gta = $('#goTemas', mount); if (gta) gta.addEventListener('click', function () { switchTab('temas'); });
+      var apSubnav = mount.querySelector('[data-ap-subnav]');
+      if (apSubnav) apSubnav.onclick = function (e) {
+        var btn = e.target.closest('[data-ap-tab]'); if (!btn) return;
+        $all('[data-ap-tab]', apSubnav).forEach(function (b) { b.classList.toggle('active', b === btn); });
+        $all('[data-ap-pane]', mount).forEach(function (p) { p.hidden = p.dataset.apPane !== btn.dataset.apTab; });
+      };
 
       wireForm([{ k: 'cvUltra', t: 'image' }, { k: 'cvDesktop', t: 'image' }, { k: 'cvMobile', t: 'image' }], mount, {});
       var cvKindEl = $('#cvKind', mount);
@@ -3088,20 +3071,75 @@ var VIEW_ICO = {
 
       function paintPreview(box) {
         var pv = box.querySelector('[data-preview]'); if (!pv) return;
-        function cc(k) { var inp = box.querySelector('[data-color="' + k + '"]'); return inp ? inp.value : '#7c3aed'; }
-        pv.style.background = cc('bg');
-        pv.style.color = cc('text');
-        var hero = pv.querySelector('.tp-hero'); hero.style.background = cc('brandLight');
-        pv.querySelector('.tp-title').style.background = cc('text');
-        pv.querySelector('.tp-btn').style.background = cc('brand');
-        var clear = box.querySelector('[data-transparent="cardBg"]');
-        $all('.tp-card', pv).forEach(function (card) { card.style.background = (clear && clear.checked) ? 'transparent' : cc('cardBg'); card.style.color = cc('text'); });
-        pv.style.borderColor = cc('brandDark');
+        var dark = box.getAttribute('data-mode') === 'dark';
+        function cc(k, def) { var inp = box.querySelector('[data-color="' + k + '"]'); return inp ? inp.value : def; }
+        var bgKey = dark ? 'darkBg' : 'bg';
+        var textKey = dark ? 'darkText' : 'text';
+        var cardKey = dark ? 'cardBgDark' : 'cardBg';
+        var bg = cc(bgKey, dark ? '#070510' : '#ffffff');
+        var text = cc(textKey, dark ? '#f5f3ff' : '#1f2937');
+        pv.style.background = bg;
+        pv.style.color = text;
+        var hero = pv.querySelector('.tp-hero'); hero.style.background = cc('brandLight', '#ede9fe');
+        pv.querySelector('.tp-title').style.background = text;
+        pv.querySelector('.tp-btn').style.background = cc('brand', '#7c3aed');
+        var clear = box.querySelector('[data-transparent="' + cardKey + '"]');
+        $all('.tp-card', pv).forEach(function (card) { card.style.background = (clear && clear.checked) ? 'transparent' : cc(cardKey, dark ? '#070510' : '#ffffff'); card.style.color = text; });
+        pv.style.borderColor = cc('brandDark', '#6d28d9');
       }
       $all('[data-theme]', mount).forEach(function (box) {
+        $all('[data-tmode]', box).forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var mode = btn.getAttribute('data-tmode');
+            box.setAttribute('data-mode', mode);
+            $all('[data-tmode]', box).forEach(function (b) { b.classList.toggle('active', b === btn); });
+            $all('[data-tmode-pane]', box).forEach(function (p) { p.hidden = p.getAttribute('data-tmode-pane') !== mode; });
+            paintPreview(box);
+          });
+        });
         paintPreview(box);
         $all('[data-color]', box).forEach(function (inp) { inp.addEventListener('input', function () { paintPreview(box); }); });
         $all('[data-transparent]', box).forEach(function (inp) { inp.addEventListener('change', function () { paintPreview(box); }); });
+      });
+
+      $all('[data-default-theme]', mount).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var t = btn.getAttribute('data-default-theme') === 'dark' ? 'dark' : 'light';
+          settings.store = settings.store || {};
+          settings.store.defaultTheme = t;
+          $all('[data-default-theme]', mount).forEach(function (b) {
+            var on = b === btn;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-pressed', String(on));
+          });
+          try { localStorage.setItem('gh_store_default_theme', t); } catch (e) {}
+          SB.upsert('settings', { store_id: sid(), data: settings, updated_at: new Date().toISOString() }, 'store_id')
+            .then(function () { toast('Tema de la tienda guardado: ' + (t === 'dark' ? 'oscuro' : 'claro'), 'ok'); })
+            .catch(function (e) { toast(e.message, 'err'); });
+        });
+      });
+
+      var saveHoliday = $('#saveHoliday', mount);
+      if (saveHoliday) saveHoliday.addEventListener('click', function () {
+        settings.holiday = {
+          active: $('#h_active', mount).checked,
+          mode: $('#h_mode', mount).value,
+          startDate: $('#h_start', mount).value,
+          endDate: $('#h_end', mount).value,
+          banner: { enabled: $('#h_banner_en', mount).checked, text: $('#h_banner_text', mount).value.trim(), link: $('#h_banner_link', mount).value.trim() },
+          decorations: { snow: $('#h_snow', mount).checked, bats: $('#h_bats', mount).checked }
+        };
+        SB.upsert('settings', { store_id: sid(), data: settings, updated_at: new Date().toISOString() }, 'store_id')
+          .then(function () { toast('Temática guardada', 'ok'); }).catch(function (e) { toast(e.message, 'err'); });
+      });
+
+      $all('[data-active]', mount).forEach(function (rad) {
+        rad.addEventListener('change', function () {
+          var tid = rad.dataset.active;
+          Promise.all(themes.map(function (t) {
+            return SB.update('themes', { id: 'eq.' + t.id }, { is_active: String(t.id) === String(tid) });
+          })).then(function () { toast('Tema activo actualizado', 'ok'); }).catch(function (e) { toast(e.message, 'err'); });
+        });
       });
 
       $all('[data-save-theme]', mount).forEach(function (btn) {
