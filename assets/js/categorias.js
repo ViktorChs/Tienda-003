@@ -2,6 +2,13 @@
 (function () {
     'use strict';
 
+    function closestEl(e, selector) {
+        var t = e && e.target;
+        if (!t) return null;
+        if (t.nodeType !== 1) t = t.parentElement || t.parentNode;
+        return t && t.closest ? t.closest(selector) : null;
+    }
+
         var GROUPS = [];
 
     var TOTAL = GROUPS.reduce(function (n, g) { return n + g.items.length; }, 0);
@@ -219,7 +226,7 @@
     };
 
     sw.addEventListener('click', function (e) {
-        var b = e.target.closest('button[data-v]');
+        var b = closestEl(e, 'button[data-v]');
         if (!b) return;
         setLayout(b.dataset.v);
     });
@@ -239,18 +246,18 @@
     });
 
     body.addEventListener('click', function (e) {
-        var sec = e.target.closest('.cm-sec');
+        var sec = closestEl(e, '.cm-sec');
         if (sec) {
             secActive = Number(sec.dataset.i);
             RENDER.sections(body);
             return;
         }
-        if (e.target.closest('.cm-back')) {
+        if (closestEl(e, '.cm-back')) {
             secActive = null;
             RENDER.sections(body);
             return;
         }
-        var chip = e.target.closest('.cm-chip');
+        var chip = closestEl(e, '.cm-chip');
         if (!chip) return;
         var isAll = chip.hasAttribute('data-all');
         var name = chip.dataset.cat || '';

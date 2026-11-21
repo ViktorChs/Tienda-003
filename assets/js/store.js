@@ -388,20 +388,26 @@
   }
 
   /* Navegacion compartida a la ficha del producto (incluye tarjetas clonadas). */
+  function closestEl(e, selector) {
+    var t = e && e.target;
+    if (!t) return null;
+    if (t.nodeType !== 1) t = t.parentElement || t.parentNode;
+    return t && t.closest ? t.closest(selector) : null;
+  }
   function productHref(card) {
     var p = card && card.__gdata;
     var id = (p && p.id) || (card && card.dataset.id);
     return id ? ('producto.html?id=' + encodeURIComponent(id)) : '';
   }
   document.addEventListener('click', function (e) {
-    var card = e.target.closest('.product-card');
-    if (!card || e.target.closest('button, a')) return;
+    var card = closestEl(e, '.product-card');
+    if (!card || closestEl(e, 'button, a')) return;
     var href = productHref(card);
     if (href) location.href = href;
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
-    var card = e.target.closest('.product-card');
+    var card = closestEl(e, '.product-card');
     if (!card || e.target !== card) return;
     var href = productHref(card);
     if (href) { e.preventDefault(); location.href = href; }
@@ -409,7 +415,7 @@
 
   /* Carrito delegado: funciona con tarjetas dibujadas despues de cargar. */
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.product-card button[title="Agregar al carrito"]');
+    var btn = closestEl(e, '.product-card button[title="Agregar al carrito"]');
     if (!btn || !window.GigaCart) return;
     var card = btn.closest('.product-card');
     var p = card && card.__gdata;
@@ -421,7 +427,7 @@
 
   /* Brillo que sigue al cursor tambien en tarjetas dinamicas. */
   document.addEventListener('mousemove', function (e) {
-    var card = e.target.closest('.product-card, .combo-card');
+    var card = closestEl(e, '.product-card, .combo-card');
     if (!card) return;
     var r = card.getBoundingClientRect();
     card.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
