@@ -14,7 +14,7 @@
 <script src="assets/js/sb.js?v=20261103"></script>
     <script src="assets/js/store-gate.js?v=20261112"></script>
 <script src="assets/js/data.js"></script>
-    <link rel="stylesheet" href="assets/css/dark.css?v=20261130">
+    <link rel="stylesheet" href="assets/css/dark.css?v=20261131">
     <link rel="stylesheet" href="assets/css/glow-cards.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -2396,7 +2396,7 @@
     <nav class="fixed top-0 left-0 w-full h-16 z-30 flex items-center justify-between px-4 sm:px-8 border-b border-gray-200/40" style="background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 70%, rgba(255, 255, 255, 0) 100%); backdrop-filter: blur(8px);">
         <div class="flex items-center space-x-8 flex-shrink-0">
             <a href="index.html" class="flex items-center space-x-2">
-                <span class="font-bold text-gray-900 tracking-wide text-sm sm:text-base">MANIAWORLD</span>
+                <span class="font-bold text-gray-900 tracking-wide text-sm sm:text-base" data-gh="name"></span>
             </a>
         </div>
 
@@ -2519,11 +2519,11 @@
 <footer id="ubicacion" class="py-10 px-4 sm:px-8 border-t border-purple-100 relative z-20 scroll-mt-20 text-center text-xs text-gray-500" style="background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);">
         <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <a href="contacto.html" class="hover:text-purple-600 transition-colors">Atención al cliente</a>
-            <span>Sobre nosotros</span>
-            <span>Condiciones de uso</span>
-            <span>Aviso de privacidad</span>
-            <span>Privacidad de datos de salud</span>
-            <span>Opciones de privacidad de anuncios</span>
+            <a href="">Sobre nosotros</a>
+            <a href="">Condiciones de uso</a>
+            <a href="">Aviso de privacidad</a>
+            <a href="">Privacidad de datos de salud</a>
+            <a href="">Opciones de privacidad de anuncios</a>
         </div>
         <p class="max-w-4xl mx-auto mt-5 pt-5 border-t border-purple-100 text-gray-400">
             &copy; 2026, <span data-gh="name"></span> afiliado a OX1
@@ -2539,7 +2539,7 @@
     <div id="navMenu" class="md-overlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
         <div class="md-panel">
             <div class="md-head">
-                <span>MANIAWORLD</span>
+                <span data-gh="name"></span>
                 <button id="nmClose" class="md-close" title="Cerrar menú" aria-label="Cerrar menú">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
@@ -2604,7 +2604,7 @@
                 </div>
 
                 <div class="pm-info">
-                    <span class="pm-kicker">MANIAWORLD</span>
+                    <span class="pm-kicker" data-gh="name"></span>
                     <h3 class="pm-title" id="pmTitle"></h3>
                     <p class="pm-sub" id="pmSub"></p>
 
@@ -3585,7 +3585,7 @@
                 cr.scrollIntoView({ behavior: auto ? 'auto' : 'smooth', block: 'start' });
             }
 
-            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js?v=20261130).
+            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js?v=20261131).
                name: string (bucket o subcategoria) o {section, items} (boton "Todos"). */
             function applyCatFromName(name) {
                 if (name && typeof name === 'object') {
@@ -3689,7 +3689,7 @@
             });
         })();
     </script>
-    <script src="assets/js/categorias.js?v=20261130"></script>
+    <script src="assets/js/categorias.js?v=20261131"></script>
     <script>
         (function () {
             var menu = document.getElementById('navMenu');
@@ -3741,6 +3741,6 @@
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261130"></script>
+    <script src="assets/js/store.js?v=20261131"></script>
 </body>
 </html>
