@@ -1,5 +1,5 @@
 /*
- * app.js  -  Panel de administración OX1 WhatShop (Supabase)
+ * app.js  -  Panel OX1 WhatShop (Supabase)
  * Vanilla JS, sin dependencias. Usa window.GigaSB (assets/js/sb.js).
  */
 (function () {
@@ -2555,6 +2555,7 @@ var VIEW_ICO = {
     d.contact = $('#contactTpl', mount) ? $('#contactTpl', mount).value : '';
     d.share = $('#shareTpl', mount) ? $('#shareTpl', mount).value : '';
     d.heroShow = $('#hero_show', mount) ? $('#hero_show', mount).checked : undefined;
+    d.catCarousel = $('#cat_carousel_show', mount) ? $('#cat_carousel_show', mount).checked : undefined;
     var lf = mount.querySelector('input[type=hidden][data-k="logo"]');
     d.logo = lf ? lf.value : undefined;
     d.sections = $all('[data-visible]', mount).map(function (cb, i) {
@@ -2573,6 +2574,7 @@ var VIEW_ICO = {
     if (d.contact != null && $('#contactTpl', mount)) $('#contactTpl', mount).value = d.contact;
     if (d.share != null && $('#shareTpl', mount)) $('#shareTpl', mount).value = d.share;
     if (d.heroShow != null && $('#hero_show', mount)) $('#hero_show', mount).checked = d.heroShow;
+    if (d.catCarousel != null && $('#cat_carousel_show', mount)) $('#cat_carousel_show', mount).checked = d.catCarousel;
     if (d.logo != null) {
       var lf = mount.querySelector('input[type=hidden][data-k="logo"]');
       var lp = mount.querySelector('[data-prev="logo"]');
@@ -2591,7 +2593,7 @@ var VIEW_ICO = {
     var startPane = (pending && pending.pane) || 'general';
     mount.innerHTML = '<div class="loading"><span class="spinner"></span> Cargando…</div>';
     getSettings().then(function (s) {
-      var store = s.store || {}, hero = s.hero || {}, texts = s.texts || {}, sections = s.sections || [];
+      var store = s.store || {}, hero = s.hero || {}, home = s.home || {}, texts = s.texts || {}, sections = s.sections || [];
       var hasStoreLogo = Object.prototype.hasOwnProperty.call(store, 'logo');
       var logo = hasStoreLogo ? (store.logo || '') : (hero.logo || '');
       var cardLogo = '<div class="card"><h3>Logo de la tienda</h3><p class="desc">Se muestra en el encabezado de todas las páginas y en la portada. Sube una imagen o pega una ruta/URL.</p>' +
@@ -2616,6 +2618,8 @@ var VIEW_ICO = {
         fld('hero.title', 'Título', hero.title) + fld('hero.subtitle', 'Subtítulo', hero.subtitle) +
         fld('hero.buttonText', 'Texto del botón', hero.buttonText) + fld('hero.buttonLink', 'Enlace del botón', hero.buttonLink) +
         '</div></div>';
+      var cardCats = '<div class="card"><h3>Carrusel de categorías</h3><p class="desc">Carrusel de categorías de productos que aparece al final de la portada.</p>' +
+        '<div class="check"><input type="checkbox" id="cat_carousel_show"' + (home.showCategoryCarousel !== false ? ' checked' : '') + '><span>Mostrar carrusel de categorías en la portada</span></div></div>';
       var cardTextos = '<div class="card"><h3>Textos de secciones</h3><div class="row">' +
         fld('texts.combos.badge', 'Combos · badge', texts.combos && texts.combos.badge) +
         fld('texts.combos.title', 'Combos · título', texts.combos && texts.combos.title) +
@@ -2637,7 +2641,7 @@ var VIEW_ICO = {
 
       var panes = [
         { k: 'general', l: 'General', html: cardStore + cardSchedule },
-        { k: 'portada', l: 'Portada', html: cardLogo + cardHero },
+        { k: 'portada', l: 'Portada', html: cardLogo + cardHero + cardCats },
         { k: 'textos', l: 'Textos', html: cardTextos + cardSec },
         { k: 'pagos', l: 'Pagos', html: cardPay },
         { k: 'mensajes', l: 'Mensajes', html: cardMsg1 + cardMsg2 + cardMsg3 }
@@ -2747,6 +2751,8 @@ var VIEW_ICO = {
     out.store.contactTemplate = $('#contactTpl').value;
     out.store.shareTemplate = $('#shareTpl').value;
     out.hero.showLogo = $('#hero_show').checked;
+    out.home = out.home || {};
+    out.home.showCategoryCarousel = $('#cat_carousel_show').checked;
     var logoInp = root.querySelector('input[type=hidden][data-k="logo"]');
     if (logoInp) {
       out.store.logo = logoInp.value.trim();

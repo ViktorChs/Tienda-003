@@ -1289,7 +1289,7 @@
         </div>
 
         <!-- Bottom Category Slider Bar -->
-        <div class="absolute bottom-0 left-0 w-full z-20 category-strip py-4 px-4 sm:px-6 flex items-center justify-between gap-3">
+        <div class="absolute bottom-0 left-0 w-full z-20 category-strip py-4 px-4 sm:px-6 flex items-center justify-between gap-3" style="display:none">
             <button id="slideLeft" class="p-3 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md border border-gray-200 transition-all flex-shrink-0 active:scale-95 z-10" title="Anterior">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
             </button>
@@ -1734,24 +1734,29 @@
             }
             sliderContainer.innerHTML = '';
             const strip = sliderContainer.closest('.category-strip');
-            if (!names.length) { if (strip) strip.style.display = 'none'; return; }
-            if (strip) strip.style.display = '';
-            const loop = names.concat(names);
-            loop.forEach(name => {
-                const item = document.createElement('a');
-                item.href = 'catalogo.html?cat=' + encodeURIComponent(name);
-                item.className = 'category-card flex flex-col items-center justify-center p-4 text-center';
-                item.innerHTML = '<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/60 border border-gray-100 flex items-center justify-center text-purple-600 shadow-sm mb-3 pointer-events-none">' +
-                    '<svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">' + CAT_ICON + '</svg></div>' +
-                    '<span class="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 pointer-events-none px-2 leading-tight"></span>';
-                item.querySelector('span').textContent = name;
-                item.addEventListener('mousemove', (e) => {
-                    const rect = item.getBoundingClientRect();
-                    item.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
-                    item.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+            const homeCfg = (GD.settings && GD.settings.home) || {};
+            const showCarousel = homeCfg.showCategoryCarousel !== false && names.length > 0;
+            if (!showCarousel) {
+                if (strip) strip.style.display = 'none';
+            } else {
+                if (strip) strip.style.display = '';
+                const loop = names.concat(names);
+                loop.forEach(name => {
+                    const item = document.createElement('a');
+                    item.href = 'catalogo.html?cat=' + encodeURIComponent(name);
+                    item.className = 'category-card flex flex-col items-center justify-center p-4 text-center';
+                    item.innerHTML = '<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/60 border border-gray-100 flex items-center justify-center text-purple-600 shadow-sm mb-3 pointer-events-none">' +
+                        '<svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">' + CAT_ICON + '</svg></div>' +
+                        '<span class="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 pointer-events-none px-2 leading-tight"></span>';
+                    item.querySelector('span').textContent = name;
+                    item.addEventListener('mousemove', (e) => {
+                        const rect = item.getBoundingClientRect();
+                        item.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+                        item.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+                    });
+                    sliderContainer.appendChild(item);
                 });
-                sliderContainer.appendChild(item);
-            });
+            }
 
             const footer = document.getElementById('footerCats');
             if (footer) {
@@ -2399,7 +2404,7 @@
             menu.querySelectorAll('.md-links a').forEach(a => a.addEventListener('click', shut));
         })();
     </script>
-    <script src="assets/js/categorias.js?v=20261122"></script>
+    <script src="assets/js/categorias.js?v=20261123"></script>
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <script>
@@ -2601,6 +2606,6 @@
         })();
     </script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261122"></script>
+    <script src="assets/js/store.js?v=20261123"></script>
 </body>
 </html>
