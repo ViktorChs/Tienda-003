@@ -282,16 +282,9 @@ $$;
 revoke execute on function public.create_store(text,text,bigint) from public, anon, authenticated;
 grant execute on function public.create_store(text,text,bigint) to service_role;
 
--- 6) Semilla idempotente de Tienda 002 y 003 (vacias, configuradas)
-do $$
-begin
-  if not exists (select 1 from public.stores where slug = 'tienda-002') then
-    perform public.create_store('tienda-002', 'Tienda 002', 1);
-  end if;
-  if not exists (select 1 from public.stores where slug = 'tienda-003') then
-    perform public.create_store('tienda-003', 'Tienda 003', 1);
-  end if;
-end $$;
+-- 6) Sin semillas de tiendas demo.
+--    Esta base es plantilla limpia: cada tienda se crea desde el panel
+--    central o con public.create_store(...) cuando corresponda.
 
 -- 7) Verificacion
 select st.id, st.slug, st.name, st.active,

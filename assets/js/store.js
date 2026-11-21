@@ -373,32 +373,18 @@
       '</button>' +
     '</div>';
 
-  function hydrateGrid(grid, products) {
-    if (!grid || !products) return;
-    var cards = Array.prototype.slice.call(grid.querySelectorAll('.product-card'));
-    if (!cards.length) {
-      grid.innerHTML = '';
-      if (!products.length) { grid.hidden = true; return; }
-      var tpl = document.createElement('template');
-      tpl.innerHTML = CARD_TPL;
-      products.forEach(function (p) {
-        var card = tpl.content.firstElementChild.cloneNode(true);
-        fillProduct(card, p);
-        grid.appendChild(card);
-      });
-      grid.hidden = false;
-      return;
-    }
-    var tpl = cards[0].cloneNode(true);
-    products.forEach(function (p, i) {
-      var card = cards[i] || tpl.cloneNode(true);
+  function renderGrid(grid, products) {
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (!products.length) { grid.hidden = true; return; }
+    var tpl = document.createElement('template');
+    tpl.innerHTML = CARD_TPL;
+    products.forEach(function (p) {
+      var card = tpl.content.firstElementChild.cloneNode(true);
       fillProduct(card, p);
       grid.appendChild(card);
     });
-    cards.slice(products.length).forEach(function (c) {
-      c.style.display = 'none';
-      grid.appendChild(c);
-    });
+    grid.hidden = false;
   }
 
   /* Navegacion compartida a la ficha del producto (incluye tarjetas clonadas). */
@@ -420,6 +406,27 @@
     var href = productHref(card);
     if (href) { e.preventDefault(); location.href = href; }
   });
+
+  /* Carrito delegado: funciona con tarjetas dibujadas despues de cargar. */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.product-card button[title="Agregar al carrito"]');
+    if (!btn || !window.GigaCart) return;
+    var card = btn.closest('.product-card');
+    var p = card && card.__gdata;
+    if (!p) return;
+    e.preventDefault();
+    e.stopPropagation();
+    GigaCart.add({ id: p.id, name: p.name, price: p.price, img: imgSrc(p.image, 640) });
+  });
+
+  /* Brillo que sigue al cursor tambien en tarjetas dinamicas. */
+  document.addEventListener('mousemove', function (e) {
+    var card = e.target.closest('.product-card, .combo-card');
+    if (!card) return;
+    var r = card.getBoundingClientRect();
+    card.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+    card.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
+  }, { passive: true });
 
   /* ---------------- Combos ---------------- */
 
@@ -487,30 +494,16 @@
       '</div>' +
     '</article>';
 
-  function hydrateCombos(track, combos) {
-    if (!track || !combos) return;
-    var cards = Array.prototype.slice.call(track.querySelectorAll('.combo-card'));
-    if (!cards.length) {
-      track.innerHTML = '';
-      if (!combos.length) return;
-      var tpl = document.createElement('template');
-      tpl.innerHTML = COMBO_TPL;
-      combos.forEach(function (c) {
-        var card = tpl.content.firstElementChild.cloneNode(true);
-        fillCombo(card, c);
-        track.appendChild(card);
-      });
-      return;
-    }
-    var tpl = cards[0].cloneNode(true);
-    combos.forEach(function (c, i) {
-      var card = cards[i] || tpl.cloneNode(true);
+  function renderCombos(track, combos) {
+    if (!track) return;
+    track.innerHTML = '';
+    if (!combos.length) return;
+    var tpl = document.createElement('template');
+    tpl.innerHTML = COMBO_TPL;
+    combos.forEach(function (c) {
+      var card = tpl.content.firstElementChild.cloneNode(true);
       fillCombo(card, c);
       track.appendChild(card);
-    });
-    cards.slice(combos.length).forEach(function (c) {
-      c.style.display = 'none';
-      track.appendChild(c);
     });
   }
 
@@ -590,6 +583,17 @@
     });
   }
 
+  function hideEmptySections() {
+    var combosSec = document.getElementById('combos');
+    if (combosSec) combosSec.style.display = 'none';
+    var homeGrid = document.getElementById('homeGrid');
+    if (homeGrid) homeGrid.hidden = true;
+    var homeEmpty = document.getElementById('homeEmpty');
+    if (homeEmpty) homeEmpty.hidden = false;
+    var homeMore = document.getElementById('homeMoreWrap');
+    if (homeMore) homeMore.hidden = true;
+  }
+
   /* ---------------- Carga ---------------- */
 
   GD.ready.then(function (D) {
@@ -603,18 +607,23 @@
     }
 
     var products = D.products || [];
-    if (!products.length) { window.dispatchEvent(new CustomEvent('gh:ready')); return; }
+    if (!products.length) {
+      hideEmptySections();
+      bindSearch();
+      window.dispatchEvent(new CustomEvent('gh:ready'));
+      return;
+    }
 
     var catName = {}, subName = {};
     (D.categories || []).forEach(function (c) { catName[c.id] = c.name; });
     (D.subcategories || []).forEach(function (s) { subName[s.id] = s.name; });
     products.forEach(function (p) {
-      p.category_name = catName[p.category_id] || '';
-      p.subcategory_name = subName[p.subcategory_id] || '';
+      p.category_name = catName[p.category_id] || p.category_name || '';
+      p.subcategory_name = subName[p.subcategory_id] || p.subcategory_name || '';
     });
 
-    var combos = products.filter(function (p) { return p.type === 'combo'; });
-    var items = products.filter(function (p) { return p.type !== 'combo'; });
+    var combos = products.filter(function (p) { return p.type === 'combo' && !p.hidden; });
+    var items = products.filter(function (p) { return p.type !== 'combo' && !p.hidden; });
     ALL_PRODUCTS = items.slice();
 
     var byId = {};
@@ -625,12 +634,17 @@
         .filter(Boolean);
     });
 
-    hydrateGrid(document.getElementById('homeGrid'), items);
-    hydrateGrid(document.getElementById('crGrid'), items);
-    hydrateCombos(document.getElementById('comboTrack'), combos);
+    renderGrid(document.getElementById('homeGrid'), items);
+    renderGrid(document.getElementById('crGrid'), items);
+    renderCombos(document.getElementById('comboTrack'), combos);
+    bindSearch();
+
+    var homeEmpty = document.getElementById('homeEmpty');
+    if (homeEmpty) homeEmpty.hidden = items.length > 0;
+    var homeMore = document.getElementById('homeMoreWrap');
+    if (homeMore) homeMore.hidden = items.length === 0;
     var combosSec = document.getElementById('combos');
     if (combosSec && !combos.length) combosSec.style.display = 'none';
-    bindSearch();
 
     window.dispatchEvent(new CustomEvent('gh:ready'));
   }).catch(function (e) {

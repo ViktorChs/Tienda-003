@@ -1359,13 +1359,6 @@
 
                     <div class="combo-viewport no-scrollbar" id="comboViewport">
                         <div class="combo-track" id="comboTrack">
-                            
-
-                            
-
-                            
-
-                            
                         </div>
                     </div>
 
@@ -1389,59 +1382,15 @@
                 <p class="text-gray-500 text-sm mt-1 max-w-md">Los equipos y componentes preferidos por nuestra comunidad en zulia y toda Venezuela.</p>
             </div>
 
-            <div id="homeGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 px-2 sm:px-0">
-                
+            <div id="homeGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 px-2 sm:px-0" hidden></div>
 
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
+            <div id="homeEmpty" class="text-center py-14 px-4" hidden>
+                <svg class="w-14 h-14 mx-auto text-purple-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 7h18M5 7l1 13h12l1-13M9 7V4h6v3"/><path d="M9 11v5M15 11v5"/></svg>
+                <p class="mt-4 text-gray-900 font-extrabold text-lg">Aún no hay productos publicados</p>
+                <p class="text-gray-500 text-sm mt-1 max-w-sm mx-auto">Esta tienda todavía no tiene productos en su catálogo. Vuelve pronto.</p>
             </div>
 
-            <div class="flex justify-center mt-10">
+            <div id="homeMoreWrap" class="flex justify-center mt-10">
                 <a href="catalogo.html" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm tracking-wide shadow-lg shadow-purple-600/30 transition-all duration-200 active:scale-[0.97]">
                     Ver más
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
@@ -1537,12 +1486,7 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
                     Categorías Principales
                 </h4>
-                <ul class="space-y-2 text-xs">
-                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Componentes & Hardware</span></li>
-                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Tarjetas de Video</span></li>
-                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Laptops & PCs</span></li>
-                    <li><span class="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer">Periféricos Gaming</span></li>
-                </ul>
+                <ul id="footerCats" class="space-y-2 text-xs"></ul>
                 <a href="catalogo.html" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold tracking-wide shadow-lg shadow-purple-600/25 transition-all duration-200 active:scale-[0.97]">
                     Ver todos los productos
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
@@ -1774,60 +1718,59 @@
     </div>
 
     <script>
-        const categories = [
-            { name: "Componentes", svg: '<path d="M6 2h12v20H6z"/><path d="M9 6h6M9 10h6M9 14h6"/>' },
-            { name: "Procesadores", svg: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9zM9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>' },
-            { name: "Tarjetas Madre", svg: '<rect x="2" y="2" width="20" height="20" rx="2"/><path d="M6 6h4v4H6zM14 6h4v12H14zM6 14h4v4H6z"/>' },
-            { name: "Tarjetas de Video", svg: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="2"/>' },
-            { name: "Memorias Ram", svg: '<rect x="2" y="8" width="20" height="8" rx="1"/><path d="M6 8V5M10 8V5M14 8V5M18 8V5"/>' },
-            { name: "Discos Externos", svg: '<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="16" r="2"/><path d="M9 6h6"/>' },
-            { name: "Fuentes de Poder", svg: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 12h4m4 0h4M12 8v8"/>' },
-            { name: "Cases", svg: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h4"/>' },
-            { name: "Equipos Repotenciados", svg: '<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.23-5.23"/>' },
-            { name: "Periféricos y Gaming", svg: '<rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4m-2-2v4M15 11h.01M17 13h.01"/>' },
-            { name: "Teclados", svg: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h2M10 10h2M14 10h2M18 10h.01M6 14h2M10 14h6"/>' },
-            { name: "Mouses", svg: '<rect x="8" y="2" width="8" height="12" rx="4"/><path d="M12 2v4"/>' },
-            { name: "Kit Teclado + Mouse", svg: '<rect x="2" y="8" width="14" height="10" rx="2"/><rect x="18" y="10" width="4" height="6" rx="2"/>' },
-            { name: "Audífonos", svg: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>' },
-            { name: "Micrófonos", svg: '<rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/>' },
-            { name: "Controles", svg: '<rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4m-2-2v4M15 11h.01M17 13h.01"/>' },
-            { name: "Sillas Gamer", svg: '<path d="M9 13H5a2 2 0 0 0-2 2v4h4v-2h10v2h4v-4a2 2 0 0 0-2-2h-4M12 3v10M8 3h8"/>' },
-            { name: "Laptops", svg: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/>' },
-            { name: "Computadoras", svg: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>' },
-            { name: "Monitores", svg: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v4M8 21h8"/>' },
-            { name: "Audio", svg: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>' },
-            { name: "Router", svg: '<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.94 0M12 20h.01"/>' },
-            { name: "Cargadores", svg: '<path d="M12 2v6m-4 0h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"/>' },
-            { name: "UPS / Respaldo Eléctrico", svg: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 6v12M9 9h6"/>' },
-            { name: "Camaras de Seguridad", svg: '<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>' },
-            { name: "Impresoras", svg: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>' },
-            { name: "Accesorios", svg: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>' }
-        ];
-
         const sliderContainer = document.getElementById('categorySlider');
-        
-        const loopCategories = [...categories, ...categories];
-        loopCategories.forEach(cat => {
-            const item = document.createElement('a');
-            item.href = 'catalogo.html?cat=' + encodeURIComponent(cat.name);
-            item.className = 'category-card flex flex-col items-center justify-center p-4 text-center';
-            item.innerHTML = `
-                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/60 border border-gray-100 flex items-center justify-center text-purple-600 shadow-sm mb-3 pointer-events-none">
-                    <svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">${cat.svg}</svg>
-                </div>
-                <span class="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 pointer-events-none px-2 leading-tight">${cat.name}</span>
-            `;
+        const CAT_ICON = '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>';
 
-            item.addEventListener('mousemove', (e) => {
-                const rect = item.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                item.style.setProperty('--mouse-x', `${x}px`);
-                item.style.setProperty('--mouse-y', `${y}px`);
+        function renderCategorySlider() {
+            if (!sliderContainer) return;
+            const GD = window.GigaData || {};
+            const names = [];
+            (GD.categories || []).forEach(c => { if (!c.hidden && names.indexOf(c.name) === -1) names.push(c.name); });
+            if (!names.length) {
+                (GD.products || []).forEach(p => {
+                    const n = p.category_name || '';
+                    if (n && names.indexOf(n) === -1) names.push(n);
+                });
+            }
+            sliderContainer.innerHTML = '';
+            const strip = sliderContainer.closest('.category-strip');
+            if (!names.length) { if (strip) strip.style.display = 'none'; return; }
+            if (strip) strip.style.display = '';
+            const loop = names.concat(names);
+            loop.forEach(name => {
+                const item = document.createElement('a');
+                item.href = 'catalogo.html?cat=' + encodeURIComponent(name);
+                item.className = 'category-card flex flex-col items-center justify-center p-4 text-center';
+                item.innerHTML = '<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/60 border border-gray-100 flex items-center justify-center text-purple-600 shadow-sm mb-3 pointer-events-none">' +
+                    '<svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">' + CAT_ICON + '</svg></div>' +
+                    '<span class="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 pointer-events-none px-2 leading-tight"></span>';
+                item.querySelector('span').textContent = name;
+                item.addEventListener('mousemove', (e) => {
+                    const rect = item.getBoundingClientRect();
+                    item.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+                    item.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+                });
+                sliderContainer.appendChild(item);
             });
 
-            sliderContainer.appendChild(item);
-        });
+            const footer = document.getElementById('footerCats');
+            if (footer) {
+                footer.innerHTML = '';
+                names.slice(0, 4).forEach(name => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.className = 'text-gray-500 hover:text-purple-600 transition-colors';
+                    a.href = 'catalogo.html?cat=' + encodeURIComponent(name);
+                    a.textContent = name;
+                    li.appendChild(a);
+                    footer.appendChild(li);
+                });
+            }
+        }
+
+        renderCategorySlider();
+        if (window.GigaData && window.GigaData.ready) window.GigaData.ready.then(renderCategorySlider);
+        window.addEventListener('gh:ready', renderCategorySlider);
 
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
@@ -2456,11 +2399,14 @@
             menu.querySelectorAll('.md-links a').forEach(a => a.addEventListener('click', shut));
         })();
     </script>
-    <script src="assets/js/categorias.js"></script>
+    <script src="assets/js/categorias.js?v=20261121"></script>
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <script>
         (function () {
+            var booted = false;
+            function boot() {
+            if (booted) return;
             var slider = document.querySelector('.combo-slider');
             if (!slider) return;
             var viewport = document.getElementById('comboViewport');
@@ -2470,6 +2416,7 @@
             var next = slider.querySelector('.combo-next');
             var cards = track ? Array.prototype.slice.call(track.children) : [];
             if (!viewport || !cards.length) return;
+            booted = true;
 
             cards.forEach(function (card) {
                 card.addEventListener('mousemove', function (e) {
@@ -2507,7 +2454,6 @@
             var cmCrumbName = document.getElementById('cmCrumbName');
             var currentComboCard = null;
 
-            
             var checkIcon = '<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
             function fmtUSD(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -2647,9 +2593,12 @@
             window.addEventListener('resize', update);
             if (window.ResizeObserver) { new ResizeObserver(update).observe(track); }
             update();
+            }
+            boot();
+            window.addEventListener('gh:ready', boot);
         })();
     </script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261119"></script>
+    <script src="assets/js/store.js?v=20261121"></script>
 </body>
 </html>

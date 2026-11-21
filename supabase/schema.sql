@@ -493,6 +493,6 @@ where u.email = 'admin@gigahertzstore.com'
 on conflict (id) do nothing;
 
 -- ============================================================
---  NOTA: productos, combos (combo_items) y subcategorias se migran
---  desde el HTML actual con supabase/migrate.js -> products_seed.sql
+--  NOTA: productos, combos (combo_items) y subcategorias se
+--  cargan desde el panel. No se insertan datos de ejemplo.
 -- ============================================================

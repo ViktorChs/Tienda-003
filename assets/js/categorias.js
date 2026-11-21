@@ -2,40 +2,7 @@
 (function () {
     'use strict';
 
-    var DEFAULT_GROUPS = [
-        {
-            name: 'Hardware y Componentes',
-            icon: '<path d="M4 4h16v16H4z"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>',
-            items: ['Procesadores', 'Tarjetas Madre AMD', 'Tarjetas Madre Intel', 'Tarjetas de Video', 'Memorias Ram DDR3', 'Memorias Ram DDR4', 'Memorias Ram DDR5', 'Memorias Ram Laptop', 'SSD M.2', 'SSD Sata', 'Discos Externos', 'Enclosure/Case externo', 'Fuentes de Poder', 'Enfriamiento', 'Pastas Térmicas', 'Thermal Pads', 'Cases', 'Equipos Repotenciados']
-        },
-        {
-            name: 'Periféricos y Gaming',
-            icon: '<path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.544-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
-            items: ['Teclados', 'Mouses', 'Kit Teclado + Mouse', 'Mouse Pads', 'Keycaps', 'Audífonos', 'Micrófonos', 'Controles/Volantes', 'Sillas Gamer', 'Mesas/Escritorios Gamer']
-        },
-        {
-            name: 'Laptops, Computadoras y Pantallas',
-            icon: '<path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10H3V5z"/><path d="M2 17h20v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2z"/>',
-            items: ['Laptops', 'Mini PC', 'Tablets', 'Tabletas Graficas', 'Monitores', 'Proyectores y Pantallas']
-        },
-        {
-            name: 'Audio',
-            icon: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>',
-            items: ['Audio', 'Grabación y Podcast', 'Webcam']
-        },
-        {
-            name: 'Oficina, Impresión y Estética',
-            icon: '<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
-            items: ['Impresoras', 'Tintas y Toner', 'Letreros Led y Lámparas', 'Soportes']
-        },
-        {
-            name: 'Accesorios y Varios',
-            icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
-            items: ['Redes', 'Router y Mesh', 'Cargadores', 'UPS / Respaldo Eléctrico', 'Cables y Adaptadores', 'Camaras de Seguridad', 'Maletines y Bolsos', 'Accesorios', 'Gift Cards y Licencias']
-        }
-    ];
-
-    var GROUPS = DEFAULT_GROUPS;
+        var GROUPS = [];
 
     var TOTAL = GROUPS.reduce(function (n, g) { return n + g.items.length; }, 0);
     var LAYOUTS = [
@@ -128,7 +95,12 @@
 
     var secActive = null;
 
+    function emptyHTML() {
+        return '<div style="padding:44px 10px;text-align:center;color:#6b7280;font-size:13px">Aún no hay categorías publicadas en esta tienda.</div>';
+    }
+
     function renderSections(body) {
+        if (!GROUPS.length) { body.innerHTML = emptyHTML(); return; }
         if (secActive !== null) {
             var g = GROUPS[secActive];
             body.innerHTML =
@@ -147,12 +119,14 @@
     }
 
     function renderRows(body) {
+        if (!GROUPS.length) { body.innerHTML = emptyHTML(); return; }
         body.innerHTML = '<div class="cm-rows">' + GROUPS.map(function (g) {
             return '<div class="cm-row"><h4 class="cm-row-label">' + svg(g.icon) + '<span>' + g.name + '</span><span class="n">' + g.items.length + '</span></h4><div class="cm-row-items">' + chipsHTML(g) + '</div></div>';
         }).join('') + '</div>';
     }
 
     function renderColumns(body) {
+        if (!GROUPS.length) { body.innerHTML = emptyHTML(); return; }
         body.innerHTML = '<div class="cm-cols">' + GROUPS.map(function (g) {
             return '<div class="cm-col"><h4 class="cm-col-h">' + svg(g.icon) + '<span>' + g.name + '</span><span class="n">' + g.items.length + '</span></h4><ul class="cm-list">' + g.items.map(function (it) {
                 return '<li><button type="button" class="cm-chip" data-cat="' + it.replace(/"/g, '&quot;') + '">' + it + '</button></li>';
@@ -305,31 +279,46 @@
         });
     });
 
-    /* Construye las secciones a partir de la DB (categorías + subcategorías). */
+    /* Construye las secciones desde la DB. Si aún no hay categorías,
+       agrupa por los datos de los productos publicados. */
     function groupsFromData(D) {
-        if (!D || !D.categories || !D.categories.length) return null;
+        D = D || {};
         var DEF_ICON = '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>';
-        return D.categories.filter(function (c) { return !c.hidden; }).map(function (c) {
-            var items = (D.subcategories || []).filter(function (s) {
-                return String(s.category_id) === String(c.id) && !s.hidden;
-            }).map(function (s) { return s.name; });
-            return { name: c.name, icon: (c.icon && c.icon.trim()) ? c.icon : DEF_ICON, items: items };
+        var cats = D.categories || [];
+        if (cats.length) {
+            return cats.filter(function (c) { return !c.hidden; }).map(function (c) {
+                var items = (D.subcategories || []).filter(function (s) {
+                    return String(s.category_id) === String(c.id) && !s.hidden;
+                }).map(function (s) { return s.name; });
+                return { name: c.name, icon: (c.icon && c.icon.trim()) ? c.icon : DEF_ICON, items: items };
+            });
+        }
+        var map = {}, order = [];
+        (D.products || []).forEach(function (p) {
+            if (p.hidden) return;
+            var c = p.category_name || '';
+            if (!c) return;
+            if (!map[c]) { map[c] = []; order.push(c); }
+            var s = p.subcategory_name || '';
+            if (s && map[c].indexOf(s) === -1) map[c].push(s);
         });
+        return order.map(function (name) { return { name: name, icon: DEF_ICON, items: map[name] }; });
     }
 
     setLayout(layout);
 
-    /* Si hay datos en Supabase, sustituye las secciones por las reales. */
+    function applyGroups() {
+        var g = groupsFromData(window.GigaData || {});
+        GROUPS = g || [];
+        TOTAL = GROUPS.reduce(function (n, x) { return n + x.items.length; }, 0);
+        var sub = document.querySelector('#catModal .cm-sub');
+        if (sub) sub.textContent = GROUPS.length + ' secciones · ' + TOTAL + ' categorías';
+        secActive = null;
+        RENDER[layout](body);
+    }
+
     if (window.GigaData) {
-        window.GigaData.ready.then(function (D) {
-            var g = groupsFromData(D);
-            if (!g || !g.length) return;
-            GROUPS = g;
-            TOTAL = GROUPS.reduce(function (n, x) { return n + x.items.length; }, 0);
-            var sub = document.querySelector('#catModal .cm-sub');
-            if (sub) sub.textContent = GROUPS.length + ' secciones · ' + TOTAL + ' categorías';
-            secActive = null;
-            RENDER[layout](body);
-        });
+        window.GigaData.ready.then(applyGroups);
+        window.addEventListener('gh:ready', applyGroups);
     }
 })();

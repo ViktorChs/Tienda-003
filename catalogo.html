@@ -2499,55 +2499,6 @@
                         </button>
                     </div>
                     <div class="grid grid-cols-2 gap-3 sm:gap-6" id="crGrid">
-
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
-
-                
                     </div>
                     <div class="cr-empty" id="crEmpty" hidden>
                         <svg class="w-14 h-14 mx-auto text-purple-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -3301,7 +3252,7 @@
             const resetBtn = document.getElementById('cfReset');
             const searchInp = document.getElementById('cfSearch');
             const PER_PAGE = 20;
-            const CATS = ['Laptops', 'Computadoras', 'Componentes', 'Periféricos', 'Impresión'];
+            let CATS = [];
             const CAT_MAP = {
                 'Procesadores': 'Componentes',
                 'Tarjetas Madre AMD': 'Componentes',
@@ -3387,8 +3338,8 @@
             }
             let data = buildData();
 
-            let absMin = Math.min.apply(null, data.map(d => d.price));
-            let absMax = Math.max.apply(null, data.map(d => d.price));
+            let absMin = data.length ? Math.min.apply(null, data.map(d => d.price)) : 0;
+            let absMax = data.length ? Math.max.apply(null, data.map(d => d.price)) : 0;
             const state = { sort: 'default', min: absMin, max: absMax, cat: '', subcat: '', subcats: null, section: '', q: '', page: 1 };
 
             [loRange, hiRange].forEach(r => {
@@ -3488,6 +3439,15 @@
                 countEl.textContent = total === 1 ? '1 producto' : total + ' productos';
                 emptyEl.hidden = total > 0;
                 grid.hidden = total === 0;
+                var emptyTitle = emptyEl.querySelector('p');
+                var emptyHint = emptyEl.querySelector('small');
+                if (!data.length) {
+                    if (emptyTitle) emptyTitle.textContent = 'Aún no hay productos publicados';
+                    if (emptyHint) emptyHint.textContent = 'Esta tienda todavía no tiene productos en su catálogo.';
+                } else {
+                    if (emptyTitle) emptyTitle.textContent = 'Ningún producto coincide';
+                    if (emptyHint) emptyHint.textContent = 'Prueba otro rango de precios o limpia los filtros.';
+                }
                 renderPag(totalPages);
             }
 
@@ -3544,12 +3504,15 @@
             /* Re-lee el DOM tras la hidratacion dinamica (evento gh:ready). */
             function refreshData() {
                 data = buildData();
-                absMin = Math.min.apply(null, data.map(d => d.price));
-                absMax = Math.max.apply(null, data.map(d => d.price));
+                absMin = data.length ? Math.min.apply(null, data.map(d => d.price)) : 0;
+                absMax = data.length ? Math.max.apply(null, data.map(d => d.price)) : 0;
                 [loRange, hiRange].forEach(r => { r.min = absMin; r.max = absMax; });
                 state.min = absMin;
                 state.max = absMax;
                 SUB_SET = new Set(data.map(d => d.subcat).filter(Boolean));
+                CATS = [];
+                data.forEach(d => { if (d.cat && CATS.indexOf(d.cat) === -1) CATS.push(d.cat); });
+                if (!data.length) { state.cat = ''; state.subcat = ''; state.subcats = null; state.section = ''; refreshCatLabel(); }
                 minInp.placeholder = String(absMin);
                 maxInp.placeholder = String(absMax);
                 syncRangeUI();
@@ -3657,7 +3620,7 @@
                 cr.scrollIntoView({ behavior: auto ? 'auto' : 'smooth', block: 'start' });
             }
 
-            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js).
+            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js?v=20261121).
                name: string (bucket o subcategoria) o {section, items} (boton "Todos"). */
             function applyCatFromName(name) {
                 if (name && typeof name === 'object') {
@@ -3704,6 +3667,7 @@
                 } else if (p) {
                     var v = CAT_MAP[p] || p;
                     if (CATS.indexOf(v) !== -1) { setCat(v); scrolled = true; }
+                    else if (SUB_SET.has(p)) { setSubcat(p); scrolled = true; }
                 }
                 resetPage(); apply();
                 setMeta();
@@ -3760,7 +3724,7 @@
             });
         })();
     </script>
-    <script src="assets/js/categorias.js"></script>
+    <script src="assets/js/categorias.js?v=20261121"></script>
     <script>
         (function () {
             var menu = document.getElementById('navMenu');
@@ -3812,6 +3776,6 @@
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261119"></script>
+    <script src="assets/js/store.js?v=20261121"></script>
 </body>
 </html>
