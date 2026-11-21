@@ -14,7 +14,7 @@
 <script src="assets/js/sb.js?v=20261103"></script>
     <script src="assets/js/store-gate.js?v=20261112"></script>
 <script src="assets/js/data.js"></script>
-    <link rel="stylesheet" href="assets/css/dark.css?v=20261129">
+    <link rel="stylesheet" href="assets/css/dark.css?v=20261130">
     <link rel="stylesheet" href="assets/css/glow-cards.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -2352,6 +2352,11 @@
         }
     </style>
     <link rel="stylesheet" href="assets/css/tailwind.css">
+    <style>
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        body > main { flex: 1 0 auto; }
+        footer#ubicacion { margin-top: auto; }
+    </style>
 </head>
 <body class="w-full relative">
 
@@ -2512,13 +2517,13 @@
     </main>
 
 <footer id="ubicacion" class="py-10 px-4 sm:px-8 border-t border-purple-100 relative z-20 scroll-mt-20 text-center text-xs text-gray-500" style="background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);">
-        <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-            <a href="contacto.html" class="hover:text-purple-600 transition-colors">Customer Service</a>
-            <span>About Amazon</span>
-            <span>Conditions of Use</span>
-            <span>Privacy Notice</span>
-            <span>Consumer Health Data Privacy Disclosure</span>
-            <span>Your Ads Privacy Choices</span>
+        <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            <a href="contacto.html" class="hover:text-purple-600 transition-colors">Atención al cliente</a>
+            <span>Sobre nosotros</span>
+            <span>Condiciones de uso</span>
+            <span>Aviso de privacidad</span>
+            <span>Privacidad de datos de salud</span>
+            <span>Opciones de privacidad de anuncios</span>
         </div>
         <p class="max-w-4xl mx-auto mt-5 pt-5 border-t border-purple-100 text-gray-400">
             &copy; 2026, <span data-gh="name"></span> afiliado a OX1
@@ -3580,7 +3585,7 @@
                 cr.scrollIntoView({ behavior: auto ? 'auto' : 'smooth', block: 'start' });
             }
 
-            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js?v=20261129).
+            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js?v=20261130).
                name: string (bucket o subcategoria) o {section, items} (boton "Todos"). */
             function applyCatFromName(name) {
                 if (name && typeof name === 'object') {
@@ -3684,7 +3689,7 @@
             });
         })();
     </script>
-    <script src="assets/js/categorias.js?v=20261129"></script>
+    <script src="assets/js/categorias.js?v=20261130"></script>
     <script>
         (function () {
             var menu = document.getElementById('navMenu');
@@ -3736,6 +3741,6 @@
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261129"></script>
+    <script src="assets/js/store.js?v=20261130"></script>
 </body>
 </html>
