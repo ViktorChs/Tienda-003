@@ -17,6 +17,10 @@ html.dark {
     --gh-purple-2: #c4b5fd;
     --gh-purple-soft: #211a38;
     --gh-purple-soft-2: #2b2150;
+    --gh-footer-from: #0a0714;
+    --gh-footer-to: #0f0a1e;
+    --gh-footer-border: #2a2f3a;
+    --gh-footer-divider: #3a2c6b;
     color-scheme: dark;
 }
 
@@ -347,10 +351,10 @@ html.dark .pm-close:hover { color: #ffffff !important; }
 
 /* ---------- Footer del sitio ---------- */
 html.dark footer {
-    background: linear-gradient(180deg, #0a0714 0%, #0f0a1e 100%) !important;
-    border-top-color: var(--gh-border) !important;
+    background: linear-gradient(180deg, var(--gh-footer-from, #0a0714) 0%, var(--gh-footer-to, #0f0a1e) 100%) !important;
+    border-top-color: var(--gh-footer-border, var(--gh-border)) !important;
 }
-html.dark footer .border-t { border-color: #3a2c6b !important; }
+html.dark footer .border-t { border-color: var(--gh-footer-divider, #3a2c6b) !important; }
 
 /* ---------- Modal de categorias (categorias.js inyecta su propio <style>) ---------- */
 html.dark .cm-overlay { background: rgba(7, 5, 16, 0.82) !important; }

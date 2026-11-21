@@ -48,7 +48,11 @@
         ';--gh-text:' + v('text', '#111827') + ';}',
       'html.dark{--gh-bg:' + v('darkBg', '#0b0b12') +
         ';--gh-surface:' + v('darkSurface', '#141422') +
-        ';--gh-text:' + v('darkText', '#e5e7eb') + ';}',
+        ';--gh-text:' + v('darkText', '#e5e7eb') +
+        ';--gh-footer-from:' + hex6(c.footerDarkFrom, '#0a0714') +
+        ';--gh-footer-to:' + hex6(c.footerDarkTo, '#0f0a1e') +
+        ';--gh-footer-border:' + hex6(c.footerDarkBorder, '#2a2f3a') +
+        ';--gh-footer-divider:' + hex6(c.footerDarkDivider, '#3a2c6b') + ';}',
       'body{background-color:var(--gh-bg)!important;color:var(--gh-text)!important}',
       '.bg-white,.bg-white\\/60,.bg-white\\/80,.bg-white\\/85,.bg-white\\/90,.bg-white\\/95{background-color:var(--gh-surface)!important}',
       '.bg-gray-50{background-color:var(--gh-bg)!important}',

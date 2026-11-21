@@ -2776,7 +2776,13 @@ var VIEW_ICO = {
   /* =========================================================
    *  Temas / Festivos
    * ========================================================= */
-  var COLOR_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'bg', 'surface', 'text', 'darkBg', 'darkSurface', 'darkText'];
+  var COLOR_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'bg', 'surface', 'text', 'darkBg', 'darkSurface', 'darkText', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
+  var COLOR_DEFAULTS = {
+    footerDarkFrom: '#0a0714',
+    footerDarkTo: '#0f0a1e',
+    footerDarkBorder: '#2a2f3a',
+    footerDarkDivider: '#3a2c6b'
+  };
   var COLOR_LABELS = {
     brand: 'Color de marca',
     brandDark: 'Marca (oscuro)',
@@ -2787,7 +2793,11 @@ var VIEW_ICO = {
     text: 'Color de texto',
     darkBg: 'Fondo (modo oscuro)',
     darkSurface: 'Tarjetas (modo oscuro)',
-    darkText: 'Texto (modo oscuro)'
+    darkText: 'Texto (modo oscuro)',
+    footerDarkFrom: 'Footer oscuro · inicio',
+    footerDarkTo: 'Footer oscuro · final',
+    footerDarkBorder: 'Footer oscuro · borde superior',
+    footerDarkDivider: 'Footer oscuro · divisor interior'
   };
 
   function renderThemes(mount) {
@@ -2939,7 +2949,7 @@ var VIEW_ICO = {
         '</div></div>' +
         '<button class="btn primary" id="cvSave" type="button" style="margin-top:10px">Guardar fondo</button>' +
         '</div>' +
-        '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro".</p>' +
+        '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro". Los cuatro colores de <strong>Footer oscuro</strong> controlan el degradado, el borde superior y el divisor interior del pie de página.</p>' +
         '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><button class="btn sm" id="goTemas" type="button">Ir a Temas / Festivos</button></div>';
       themes.forEach(function (t) {
         var c = t.colors || {};
@@ -2947,7 +2957,7 @@ var VIEW_ICO = {
         html += '<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px" data-theme="' + esc(t.id) + '">' +
           '<div class="spread"><strong>' + esc(t.label) + '</strong>' + (t.is_active ? '<span class="badge" style="position:static">Activo</span>' : '') + '</div>' +
           '<div class="row" style="margin-top:10px">' + COLOR_KEYS.map(function (k) {
-            return '<div class="field mb0"><label>' + esc(COLOR_LABELS[k] || k) + '</label><input type="color" data-color="' + k + '" value="' + esc(c[k] || '#7c3aed') + '"></div>';
+            return '<div class="field mb0"><label>' + esc(COLOR_LABELS[k] || k) + '</label><input type="color" data-color="' + k + '" value="' + esc(c[k] || COLOR_DEFAULTS[k] || '#7c3aed') + '"></div>';
           }).join('') + '</div>' +
           '<div class="spread" style="margin-top:12px"><strong style="font-size:13px">Partículas</strong>' +
             '<div class="row">' +
