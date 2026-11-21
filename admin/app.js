@@ -2908,10 +2908,20 @@ var VIEW_ICO = {
       var cvColors = cvHex.colors || {};
       var cvBg = cv.bg || {};
       var cvFx = cv.fx || {};
+      var cvGlow = cv.glow || {};
+      var glowLight = cvGlow.light || [], glowDark = cvGlow.dark || [];
+      var GLOW_LIGHT = ['#7c3aed', '#a855f7', '#d946ef', '#8b5cf6'];
+      var GLOW_DARK = ['#8b5cf6', '#c084fc', '#e879f9', '#a78bfa'];
       var cvKind = cv.kind || 'hex';
       var imgHelp = 'Sube hasta 3 imágenes para que la portada sea responsive: <strong>Ultra</strong> 1920×1080 px (o 2560×1440), <strong>Desktop</strong> 1280×720 px (o 1600×900) y <strong>Mobile</strong> 768×1024 px (vertical 3:4). Usa el mismo encuadre en las tres, formato WebP/JPG y menos de 300 KB por imagen. Si subes una sola, colócala en Desktop.';
-      var html = '<div class="card"><h3>Fondo de la portada</h3>' +
-        '<p class="desc">Elige hexágonos animados, una imagen, otro efecto o sin fondo. Los hexágonos usan el modo y los colores de aquí; el logo se configura en <strong>Home / Contenido → Portada</strong>.</p>' +
+      function glowColor(id, label, value, def) {
+        return '<div class="field mb0"><label>' + esc(label) + '</label><input type="color" id="' + id + '" value="' + esc(value || def) + '"></div>';
+      }
+      function glowAlpha(id, label, value, def) {
+        return '<div class="field mb0"><label>' + esc(label) + '</label><input type="number" min="0" max="1" step="0.05" id="' + id + '" value="' + esc(value != null ? value : def) + '"></div>';
+      }
+      var html = '<div class="card"><h3>Fondo y destellos de la portada</h3>' +
+        '<p class="desc">Elige hexágonos animados, una imagen, otro efecto o sin fondo. Los destellos son los cuatro brillos en las esquinas; puedes cambiar sus colores o desactivarlos por completo. El logo se configura en <strong>Home / Contenido → Portada</strong>.</p>' +
         '<div class="row">' +
           '<div class="field"><label>Tipo de fondo</label><select id="cvKind">' +
             [['hex', 'Hexágonos animados'], ['none', 'Sin hexágonos / fondo liso'], ['image', 'Imagen responsive'], ['aurora', 'Aurora'], ['dots', 'Puntos'], ['constellation', 'Constelación'], ['grid', 'Rejilla'], ['gradient', 'Gradiente']].map(function (o) {
@@ -2947,7 +2957,24 @@ var VIEW_ICO = {
           fieldHtml({ k: 'cvDesktop', l: 'Imagen Desktop', t: 'image', help: '1280×720 o 1600×900 px.' }, cvBg.desktop) +
           fieldHtml({ k: 'cvMobile', l: 'Imagen Mobile', t: 'image', help: '768×1024 px, vertical 3:4.' }, cvBg.mobile) +
         '</div></div>' +
-        '<button class="btn primary" id="cvSave" type="button" style="margin-top:10px">Guardar fondo</button>' +
+        '<hr style="border:0;border-top:1px solid var(--border);margin:14px 0">' +
+        '<strong style="font-size:13px">Destellos en las esquinas (hero-glow)</strong>' +
+        '<div class="check" style="margin:8px 0 10px"><input type="checkbox" id="glowEnabled"' + (cvGlow.enabled !== false ? ' checked' : '') + '><span>Mostrar destellos</span></div>' +
+        '<div class="row">' +
+          glowColor('glowL1', 'Superior izq. (claro)', glowLight[0], GLOW_LIGHT[0]) +
+          glowColor('glowL2', 'Superior der. (claro)', glowLight[1], GLOW_LIGHT[1]) +
+          glowColor('glowL3', 'Inferior izq. (claro)', glowLight[2], GLOW_LIGHT[2]) +
+          glowColor('glowL4', 'Inferior der. (claro)', glowLight[3], GLOW_LIGHT[3]) +
+          glowAlpha('glowAlphaLight', 'Intensidad (claro)', cvGlow.alphaLight, 0.30) +
+        '</div>' +
+        '<div class="row" style="margin-top:8px">' +
+          glowColor('glowD1', 'Superior izq. (oscuro)', glowDark[0], GLOW_DARK[0]) +
+          glowColor('glowD2', 'Superior der. (oscuro)', glowDark[1], GLOW_DARK[1]) +
+          glowColor('glowD3', 'Inferior izq. (oscuro)', glowDark[2], GLOW_DARK[2]) +
+          glowColor('glowD4', 'Inferior der. (oscuro)', glowDark[3], GLOW_DARK[3]) +
+          glowAlpha('glowAlphaDark', 'Intensidad (oscuro)', cvGlow.alphaDark, 0.38) +
+        '</div>' +
+        '<button class="btn primary" id="cvSave" type="button" style="margin-top:10px">Guardar portada</button>' +
         '</div>' +
         '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro". Los cuatro colores de <strong>Footer oscuro</strong> controlan el degradado, el borde superior y el divisor interior del pie de página.</p>' +
         '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><button class="btn sm" id="goTemas" type="button">Ir a Temas / Festivos</button></div>';
@@ -3029,13 +3056,20 @@ var VIEW_ICO = {
         });
         next.canvas.bg = Object.assign({}, next.canvas.bg || {}, { ultra: ultra, desktop: desktop, mobile: mobile });
         next.canvas.fx = Object.assign({}, next.canvas.fx || {}, { color1: val('cvFx1'), color2: val('cvFx2') });
+        next.canvas.glow = {
+          enabled: $('#glowEnabled', mount).checked,
+          light: ['glowL1', 'glowL2', 'glowL3', 'glowL4'].map(val),
+          dark: ['glowD1', 'glowD2', 'glowD3', 'glowD4'].map(val),
+          alphaLight: num('glowAlphaLight', 0.30, 0, 1),
+          alphaDark: num('glowAlphaDark', 0.38, 0, 1)
+        };
         cvSave.disabled = true;
         SB.upsert('settings', { store_id: sid(), data: next, updated_at: new Date().toISOString() }, 'store_id')
           .then(function () {
             settings = next;
             invalidate();
-            logActivity('Cambió el fondo de la portada');
-            toast('Fondo guardado. Recarga la tienda para verlo.', 'ok');
+            logActivity('Cambió el fondo y los destellos de la portada');
+            toast('Portada guardada. Recarga la tienda para verla.', 'ok');
           })
           .catch(function (e) { toast(e.message, 'err'); })
           .then(function () { cvSave.disabled = false; });

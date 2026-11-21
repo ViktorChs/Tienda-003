@@ -15,7 +15,7 @@
     <script src="assets/js/store-gate.js?v=20261112"></script>
 <script src="assets/js/data.js"></script>
     <script src="assets/js/hero-canvas.js?v=20261104"></script>
-    <link rel="stylesheet" href="assets/css/dark.css?v=20261124">
+    <link rel="stylesheet" href="assets/css/dark.css?v=20261125">
     <link rel="stylesheet" href="assets/css/glow-cards.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -74,28 +74,33 @@
         }
         /* Destellos morados estáticos en las esquinas del canvas */
         .hero-glow {
+            --gh-glow-1: rgba(124, 58, 237, 0.30);
+            --gh-glow-2: rgba(168, 85, 247, 0.26);
+            --gh-glow-3: rgba(217, 70, 239, 0.24);
+            --gh-glow-4: rgba(139, 92, 246, 0.26);
+            --gh-glow-size: 360px;
             position: absolute;
             inset: 0;
             z-index: 2;
             pointer-events: none;
             background:
-                radial-gradient(circle 360px at 0% 0%, rgba(124, 58, 237, 0.30), transparent 70%),
-                radial-gradient(circle 360px at 100% 0%, rgba(168, 85, 247, 0.26), transparent 70%),
-                radial-gradient(circle 320px at 0% 100%, rgba(217, 70, 239, 0.24), transparent 70%),
-                radial-gradient(circle 320px at 100% 100%, rgba(139, 92, 246, 0.26), transparent 70%);
+                radial-gradient(circle var(--gh-glow-size) at 0% 0%, var(--gh-glow-1), transparent 70%),
+                radial-gradient(circle var(--gh-glow-size) at 100% 0%, var(--gh-glow-2), transparent 70%),
+                radial-gradient(circle calc(var(--gh-glow-size) - 40px) at 0% 100%, var(--gh-glow-3), transparent 70%),
+                radial-gradient(circle calc(var(--gh-glow-size) - 40px) at 100% 100%, var(--gh-glow-4), transparent 70%);
         }
         html.dark .hero-glow {
-            background:
-                radial-gradient(circle 400px at 0% 0%, rgba(139, 92, 246, 0.38), transparent 70%),
-                radial-gradient(circle 400px at 100% 0%, rgba(192, 132, 252, 0.32), transparent 70%),
-                radial-gradient(circle 360px at 0% 100%, rgba(232, 121, 249, 0.30), transparent 70%),
-                radial-gradient(circle 360px at 100% 100%, rgba(167, 139, 250, 0.34), transparent 70%);
+            --gh-glow-1: rgba(139, 92, 246, 0.38);
+            --gh-glow-2: rgba(192, 132, 252, 0.32);
+            --gh-glow-3: rgba(232, 121, 249, 0.30);
+            --gh-glow-4: rgba(167, 139, 250, 0.34);
+            --gh-glow-size: 400px;
         }
         @media (max-width: 639.98px) {
             .hero-glow {
                 background:
-                    radial-gradient(circle 240px at 0% 0%, rgba(124, 58, 237, 0.26), transparent 70%),
-                    radial-gradient(circle 240px at 100% 100%, rgba(217, 70, 239, 0.24), transparent 70%);
+                    radial-gradient(circle var(--gh-glow-size) at 0% 0%, var(--gh-glow-1), transparent 70%),
+                    radial-gradient(circle var(--gh-glow-size) at 100% 100%, var(--gh-glow-3), transparent 70%);
             }
         }
         .glass-panel {
@@ -1794,6 +1799,41 @@
             sliderContainer.parentElement.scrollBy({ left: 240, behavior: 'smooth' });
         });
 
+        /* Destellos esquineros configurables desde Admin > Apariencia */
+        (function () {
+            var GD = window.GigaData;
+            function num(v, d, lo, hi) { v = parseFloat(v); return isNaN(v) ? d : Math.min(hi, Math.max(lo, v)); }
+            function rgba(v, fallback, alpha) {
+                var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v || '');
+                if (!m) { v = fallback; m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v); }
+                var h = m[1].length === 3 ? m[1].split('').map(function (c) { return c + c; }).join('') : m[1];
+                return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + alpha + ')';
+            }
+            function apply(D) {
+                var glow = ((D && D.settings && D.settings.canvas || {}).glow) || {};
+                var style = document.getElementById('gh-glow') || document.createElement('style');
+                style.id = 'gh-glow';
+                if (glow.enabled === false) {
+                    style.textContent = '.hero-glow{display:none!important}';
+                } else {
+                    var l = glow.light || [], dk = glow.dark || [];
+                    var la = num(glow.alphaLight, 0.30, 0, 1), da = num(glow.alphaDark, 0.38, 0, 1);
+                    style.textContent =
+                        '.hero-glow{--gh-glow-1:' + rgba(l[0], '#7c3aed', la) +
+                        ';--gh-glow-2:' + rgba(l[1], '#a855f7', la) +
+                        ';--gh-glow-3:' + rgba(l[2], '#d946ef', la) +
+                        ';--gh-glow-4:' + rgba(l[3], '#8b5cf6', la) + '}' +
+                        'html.dark .hero-glow{--gh-glow-1:' + rgba(dk[0], '#8b5cf6', da) +
+                        ';--gh-glow-2:' + rgba(dk[1], '#c084fc', da) +
+                        ';--gh-glow-3:' + rgba(dk[2], '#e879f9', da) +
+                        ';--gh-glow-4:' + rgba(dk[3], '#a78bfa', da) + '}';
+                }
+                document.head.appendChild(style);
+            }
+            apply(null);
+            if (GD && GD.ready) GD.ready.then(apply); else apply(null);
+        })();
+
         /* Portada: renderer modular (assets/js/hero-canvas.js) */
         (function () {
             var GD = window.GigaData;
@@ -2404,7 +2444,7 @@
             menu.querySelectorAll('.md-links a').forEach(a => a.addEventListener('click', shut));
         })();
     </script>
-    <script src="assets/js/categorias.js?v=20261124"></script>
+    <script src="assets/js/categorias.js?v=20261125"></script>
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <script>
@@ -2606,6 +2646,6 @@
         })();
     </script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261124"></script>
+    <script src="assets/js/store.js?v=20261125"></script>
 </body>
 </html>
