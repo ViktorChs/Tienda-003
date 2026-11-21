@@ -157,6 +157,8 @@ html.dark .btt {
     color: var(--gh-text) !important;
 }
 
+html.dark .product-card { background: var(--gh-card-bg, rgb(7, 5, 16)) !important; }
+
 html.dark .product-card:hover,
 html.dark .category-card:hover,
 html.dark .pick-card:hover { border-color: rgba(167, 139, 250, 0.55) !important; }

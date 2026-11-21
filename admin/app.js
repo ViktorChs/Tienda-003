@@ -2776,8 +2776,10 @@ var VIEW_ICO = {
   /* =========================================================
    *  Temas / Festivos
    * ========================================================= */
-  var COLOR_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'bg', 'surface', 'text', 'darkBg', 'darkSurface', 'darkText', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
+  var COLOR_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'bg', 'surface', 'cardBg', 'text', 'darkBg', 'darkSurface', 'cardBgDark', 'darkText', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
   var COLOR_DEFAULTS = {
+    cardBg: '#ffffff',
+    cardBgDark: '#070510',
     footerDarkFrom: '#0a0714',
     footerDarkTo: '#0f0a1e',
     footerDarkBorder: '#2a2f3a',
@@ -2789,10 +2791,12 @@ var VIEW_ICO = {
     brandLight: 'Marca (claro)',
     accent: 'Acento',
     bg: 'Fondo de la página',
-    surface: 'Fondo de tarjetas',
+    surface: 'Fondo de paneles',
+    cardBg: 'Fondo de tarjetas de producto',
     text: 'Color de texto',
     darkBg: 'Fondo (modo oscuro)',
-    darkSurface: 'Tarjetas (modo oscuro)',
+    darkSurface: 'Paneles (modo oscuro)',
+    cardBgDark: 'Fondo de productos (oscuro)',
     darkText: 'Texto (modo oscuro)',
     footerDarkFrom: 'Footer oscuro · inicio',
     footerDarkTo: 'Footer oscuro · final',
@@ -2976,7 +2980,7 @@ var VIEW_ICO = {
         '</div>' +
         '<button class="btn primary" id="cvSave" type="button" style="margin-top:10px">Guardar portada</button>' +
         '</div>' +
-        '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro". Los cuatro colores de <strong>Footer oscuro</strong> controlan el degradado, el borde superior y el divisor interior del pie de página.</p>' +
+        '<div class="card"><h3>Colores y efectos de temas</h3><p class="desc">Personaliza cada tema. La tienda usa el tema activo (o el festivo vigente). El botón de modo <strong>oscuro/claro</strong> de la tienda usa los colores "modo oscuro". <strong>Fondo de tarjetas de producto</strong> y <strong>Fondo de productos (oscuro)</strong> cambian el fondo de las tarjetas; marca <strong>Tarjetas transparentes</strong> si quieres ver el fondo de la página a través de ellas. Los cuatro colores de <strong>Footer oscuro</strong> controlan el degradado, el borde superior y el divisor interior del pie de página.</p>' +
         '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><button class="btn sm" id="goTemas" type="button">Ir a Temas / Festivos</button></div>';
       themes.forEach(function (t) {
         var c = t.colors || {};
@@ -2984,8 +2988,13 @@ var VIEW_ICO = {
         html += '<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px" data-theme="' + esc(t.id) + '">' +
           '<div class="spread"><strong>' + esc(t.label) + '</strong>' + (t.is_active ? '<span class="badge" style="position:static">Activo</span>' : '') + '</div>' +
           '<div class="row" style="margin-top:10px">' + COLOR_KEYS.map(function (k) {
-            return '<div class="field mb0"><label>' + esc(COLOR_LABELS[k] || k) + '</label><input type="color" data-color="' + k + '" value="' + esc(c[k] || COLOR_DEFAULTS[k] || '#7c3aed') + '"></div>';
+            var val = c[k] === 'transparent' ? (COLOR_DEFAULTS[k] || '#ffffff') : (c[k] || COLOR_DEFAULTS[k] || '#7c3aed');
+            return '<div class="field mb0"><label>' + esc(COLOR_LABELS[k] || k) + '</label><input type="color" data-color="' + k + '" value="' + esc(val) + '"></div>';
           }).join('') + '</div>' +
+          '<div class="row" style="margin-top:8px">' +
+            '<label class="check mb0"><input type="checkbox" data-transparent="cardBg"' + (c.cardBg === 'transparent' ? ' checked' : '') + '><span>Tarjetas transparentes (modo claro)</span></label>' +
+            '<label class="check mb0"><input type="checkbox" data-transparent="cardBgDark"' + (c.cardBgDark === 'transparent' ? ' checked' : '') + '><span>Tarjetas transparentes (modo oscuro)</span></label>' +
+          '</div>' +
           '<div class="spread" style="margin-top:12px"><strong style="font-size:13px">Partículas</strong>' +
             '<div class="row">' +
               '<label class="check mb0"><input type="checkbox" data-t-snow="' + esc(t.id) + '"' + ((t.decorations || {}).snow ? ' checked' : '') + '><span>Nieve ❄</span></label>' +
@@ -3085,12 +3094,14 @@ var VIEW_ICO = {
         var hero = pv.querySelector('.tp-hero'); hero.style.background = cc('brandLight');
         pv.querySelector('.tp-title').style.background = cc('text');
         pv.querySelector('.tp-btn').style.background = cc('brand');
-        $all('.tp-card', pv).forEach(function (card) { card.style.background = cc('surface'); card.style.color = cc('text'); });
+        var clear = box.querySelector('[data-transparent="cardBg"]');
+        $all('.tp-card', pv).forEach(function (card) { card.style.background = (clear && clear.checked) ? 'transparent' : cc('cardBg'); card.style.color = cc('text'); });
         pv.style.borderColor = cc('brandDark');
       }
       $all('[data-theme]', mount).forEach(function (box) {
         paintPreview(box);
         $all('[data-color]', box).forEach(function (inp) { inp.addEventListener('input', function () { paintPreview(box); }); });
+        $all('[data-transparent]', box).forEach(function (inp) { inp.addEventListener('change', function () { paintPreview(box); }); });
       });
 
       $all('[data-save-theme]', mount).forEach(function (btn) {
@@ -3098,7 +3109,11 @@ var VIEW_ICO = {
           var tid = btn.dataset.saveTheme;
           var box = mount.querySelector('[data-theme="' + tid + '"]');
           var theme = themes.filter(function (t) { return String(t.id) === String(tid); })[0];
-          var colors = {}; COLOR_KEYS.forEach(function (k) { colors[k] = box.querySelector('[data-color="' + k + '"]').value; });
+          var colors = {};
+          COLOR_KEYS.forEach(function (k) {
+            var tr = box.querySelector('[data-transparent="' + k + '"]');
+            colors[k] = (tr && tr.checked) ? 'transparent' : box.querySelector('[data-color="' + k + '"]').value;
+          });
           var fx = {
             hover: box.querySelector('[data-fx-hover]').value,
             core: box.querySelector('[data-fx-core]').value,

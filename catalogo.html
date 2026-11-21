@@ -14,7 +14,7 @@
 <script src="assets/js/sb.js?v=20261103"></script>
     <script src="assets/js/store-gate.js?v=20261112"></script>
 <script src="assets/js/data.js"></script>
-    <link rel="stylesheet" href="assets/css/dark.css?v=20261125">
+    <link rel="stylesheet" href="assets/css/dark.css?v=20261127">
     <link rel="stylesheet" href="assets/css/glow-cards.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -85,7 +85,7 @@
         }
         .product-card {
             position: relative;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--gh-card-bg, rgba(255, 255, 255, 0.95));
             border: 1px solid rgba(229, 231, 235, 0.8);
             border-radius: 1.5rem;
             overflow: hidden;
@@ -997,7 +997,7 @@
         }
         .product-card {
             position: relative;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--gh-card-bg, rgba(255, 255, 255, 0.95));
             border: 1px solid rgba(229, 231, 235, 0.8);
             border-radius: 1.5rem;
             overflow: hidden;
@@ -3620,7 +3620,7 @@
                 cr.scrollIntoView({ behavior: auto ? 'auto' : 'smooth', block: 'start' });
             }
 
-            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js?v=20261125).
+            /* Aplica categoria/subcategoria sin recargar (la usa categorias.js?v=20261127).
                name: string (bucket o subcategoria) o {section, items} (boton "Todos"). */
             function applyCatFromName(name) {
                 if (name && typeof name === 'object') {
@@ -3724,7 +3724,7 @@
             });
         })();
     </script>
-    <script src="assets/js/categorias.js?v=20261125"></script>
+    <script src="assets/js/categorias.js?v=20261127"></script>
     <script>
         (function () {
             var menu = document.getElementById('navMenu');
@@ -3776,6 +3776,6 @@
     <script src="assets/js/bottomnav.js"></script>
     <script src="assets/js/transition.js"></script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261125"></script>
+    <script src="assets/js/store.js?v=20261127"></script>
 </body>
 </html>

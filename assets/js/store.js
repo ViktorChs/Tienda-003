@@ -38,6 +38,7 @@
   function themeCss(c) {
     c = c || {};
     function v(k, d) { return c[k] || d; }
+    function bg(k, d) { return c[k] === 'transparent' ? 'transparent' : hex6(c[k], d); }
     return [
       ':root{--gh-brand:' + v('brand', '#7c3aed') +
         ';--gh-brand-dark:' + v('brandDark', '#6d28d9') +
@@ -45,9 +46,11 @@
         ';--gh-accent:' + v('accent', '#a855f7') +
         ';--gh-bg:' + v('bg', '#ffffff') +
         ';--gh-surface:' + v('surface', '#f9fafb') +
+        ';--gh-card-bg:' + bg('cardBg', '#ffffff') +
         ';--gh-text:' + v('text', '#111827') + ';}',
       'html.dark{--gh-bg:' + v('darkBg', '#0b0b12') +
         ';--gh-surface:' + v('darkSurface', '#141422') +
+        ';--gh-card-bg:' + bg('cardBgDark', '#070510') +
         ';--gh-text:' + v('darkText', '#e5e7eb') +
         ';--gh-footer-from:' + hex6(c.footerDarkFrom, '#0a0714') +
         ';--gh-footer-to:' + hex6(c.footerDarkTo, '#0f0a1e') +
