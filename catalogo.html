@@ -2355,7 +2355,27 @@
     <style>
         body { display: flex; flex-direction: column; min-height: 100vh; }
         body > main { flex: 1 0 auto; }
-        footer#ubicacion { margin-top: auto; }
+        footer#ubicacion {
+            margin-top: auto;
+            padding: 32px 16px;
+        }
+        footer#ubicacion .gh-footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            row-gap: 14px;
+            column-gap: 22px;
+        }
+        footer#ubicacion .gh-footer-links a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+        }
+        @media (min-width: 640px) {
+            footer#ubicacion { padding: 40px 32px; }
+            footer#ubicacion .gh-footer-links { row-gap: 16px; column-gap: 32px; }
+        }
     </style>
 </head>
 <body class="w-full relative">
@@ -2517,7 +2537,7 @@
     </main>
 
 <footer id="ubicacion" class="py-10 px-4 sm:px-8 border-t border-purple-100 relative z-20 scroll-mt-20 text-center text-xs text-gray-500" style="background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);">
-        <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        <div class="gh-footer-links max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <a href="contacto.html" class="hover:text-purple-600 transition-colors">Atención al cliente</a>
             <a href="">Sobre nosotros</a>
             <a href="">Condiciones de uso</a>
