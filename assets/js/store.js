@@ -407,18 +407,25 @@
     var id = (p && p.id) || (card && card.dataset.id);
     return id ? ('producto.html?id=' + encodeURIComponent(id)) : '';
   }
+  function activateProduct(card) {
+    if (window.GH_PRODUCT_MODAL === true) {
+      window.dispatchEvent(new CustomEvent('gh:product-open', { detail: { card: card } }));
+      return;
+    }
+    var href = productHref(card);
+    if (href) location.href = href;
+  }
   document.addEventListener('click', function (e) {
     var card = closestEl(e, '.product-card');
     if (!card || closestEl(e, 'button, a')) return;
-    var href = productHref(card);
-    if (href) location.href = href;
+    activateProduct(card);
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     var card = closestEl(e, '.product-card');
     if (!card || e.target !== card) return;
-    var href = productHref(card);
-    if (href) { e.preventDefault(); location.href = href; }
+    e.preventDefault();
+    activateProduct(card);
   });
 
   /* Carrito delegado: funciona con tarjetas dibujadas despues de cargar. */

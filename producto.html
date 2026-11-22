@@ -17,7 +17,7 @@
     <script src="assets/js/store-gate.js?v=20261112"></script>
     <script src="assets/js/data.js"></script>
     <link rel="stylesheet" href="assets/css/dark.css?v=20261132">
-    <link rel="stylesheet" href="assets/css/glow-cards.css?v=20261134">
+    <link rel="stylesheet" href="assets/css/glow-cards.css?v=20261135">
     <style>
         :root {
             --pp-brand: #7c3aed;
@@ -1023,7 +1023,6 @@
     </script>
     <script src="assets/js/categorias.js?v=20261132"></script>
     <script src="assets/js/bottomnav.js"></script>
-    <script src="assets/js/transition.js?v=20261134"></script>
     <script src="assets/js/store.js?v=20261132"></script>
     <script>
         (function () {
@@ -1320,7 +1319,7 @@
             addBtn.addEventListener('click', addToCart);
             buyNow.addEventListener('click', function () {
                 if (!addToCart()) return;
-                setTimeout(function () { if (window.GHTransition && window.GHTransition.go) window.GHTransition.go('checkout.html'); else location.href = 'checkout.html'; }, 180);
+                setTimeout(function () { location.href = 'checkout.html'; }, 180);
             });
             favBtn.addEventListener('click', function () {
                 if (!state.product) return;

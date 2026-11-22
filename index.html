@@ -16,7 +16,7 @@
 <script src="assets/js/data.js"></script>
     <script src="assets/js/hero-canvas.js?v=20261104"></script>
     <link rel="stylesheet" href="assets/css/dark.css?v=20261132">
-    <link rel="stylesheet" href="assets/css/glow-cards.css?v=20261134">
+    <link rel="stylesheet" href="assets/css/glow-cards.css?v=20261135">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -2086,8 +2086,7 @@
 
             function goToCatalog(val, param) {
                 if (!val) return;
-                var url = 'catalogo.html?' + param + '=' + encodeURIComponent(val);
-                if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url;
+                location.href = 'catalogo.html?' + param + '=' + encodeURIComponent(val);
             }
             pmCrumbCat.addEventListener('click', () => goToCatalog(current && current.cat, 'cat'));
             pmCrumbSub.addEventListener('click', () => goToCatalog(current && current.subcat, 'sub'));
@@ -2165,23 +2164,9 @@
                 else { conceal(); settle(); }
             }
 
-            document.querySelectorAll('.product-card').forEach(card => {
-                card.setAttribute('tabindex', '0');
-                card.setAttribute('role', 'link');
-                card.style.cursor = 'pointer';
-                function goProduct(e) {
-                    if (e && e.target.closest('button')) return;
-                    var p = card.__gdata || {};
-                    var id = p.id || card.dataset.id;
-                    if (id) { var url = 'producto.html?id=' + encodeURIComponent(id); if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url; }
-                }
-                card.addEventListener('click', goProduct);
-                card.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        goProduct(e);
-                    }
-                });
+            window.GH_PRODUCT_MODAL = true;
+            window.addEventListener('gh:product-open', function (e) {
+                if (e.detail && e.detail.card) openModal(e.detail.card);
             });
 
             pmClose.addEventListener('click', closeModal);
@@ -2447,7 +2432,7 @@
     </script>
     <script src="assets/js/categorias.js?v=20261132"></script>
     <script src="assets/js/bottomnav.js"></script>
-    <script src="assets/js/transition.js?v=20261134"></script>
+    <script src="assets/js/transition.js?v=20261135"></script>
     <script>
         (function () {
             var booted = false;
@@ -2557,7 +2542,7 @@
                 var card = t && t.closest ? t.closest('.combo-card') : null;
                 if (card) {
                     var cid = (card.__gdata && card.__gdata.id) || card.dataset.id;
-                    if (cid) { var url = 'producto.html?id=' + encodeURIComponent(cid); if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url; }
+                    openCombo(card);
                 }
             });
 
@@ -2570,7 +2555,7 @@
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         var cid = (card.__gdata && card.__gdata.id) || card.dataset.id;
-                        if (cid) { var url = 'producto.html?id=' + encodeURIComponent(cid); if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url; }
+                        openCombo(card);
                     }
                 });
             });
