@@ -67,9 +67,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .product-card:hover::after,
-    .combo-card:hover::after,
-    .category-card:hover::after {
+    html:not(.fx-force-motion) .product-card:hover::after,
+    html:not(.fx-force-motion) .combo-card:hover::after,
+    html:not(.fx-force-motion) .category-card:hover::after {
         animation: none;
     }
 }

@@ -140,6 +140,7 @@
     var root = document.documentElement;
     root.classList.toggle('fx-cards-off', fx.enabled === false);
     root.classList.toggle('fx-noglow', fx.glow === false);
+    root.classList.add('fx-force-motion');
 
     window.GH_TRANSITION_BG = hex6(fx.transitionColor, '');
     window.GH_TRANSITION_ENABLED = fx.transition !== false;

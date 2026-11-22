@@ -27,7 +27,7 @@
     var reduce = false;
     var auto = false;
 
-    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { reduce = false; }
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches && window.GH_FORCE_REDUCED === true; } catch (e) { reduce = false; }
     try { auto = navigator.webdriver === true; } catch (e) { auto = false; }
 
     function skipped() {
