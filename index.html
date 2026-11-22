@@ -15,7 +15,7 @@
     <script src="assets/js/store-gate.js?v=20261112"></script>
 <script src="assets/js/data.js"></script>
     <script src="assets/js/hero-canvas.js?v=20261104"></script>
-    <link rel="stylesheet" href="assets/css/dark.css?v=20261131">
+    <link rel="stylesheet" href="assets/css/dark.css?v=20261132">
     <link rel="stylesheet" href="assets/css/glow-cards.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -2086,7 +2086,8 @@
 
             function goToCatalog(val, param) {
                 if (!val) return;
-                location.href = 'catalogo.html?' + param + '=' + encodeURIComponent(val);
+                var url = 'catalogo.html?' + param + '=' + encodeURIComponent(val);
+                if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url;
             }
             pmCrumbCat.addEventListener('click', () => goToCatalog(current && current.cat, 'cat'));
             pmCrumbSub.addEventListener('click', () => goToCatalog(current && current.subcat, 'sub'));
@@ -2172,7 +2173,7 @@
                     if (e && e.target.closest('button')) return;
                     var p = card.__gdata || {};
                     var id = p.id || card.dataset.id;
-                    if (id) location.href = 'producto.html?id=' + encodeURIComponent(id);
+                    if (id) { var url = 'producto.html?id=' + encodeURIComponent(id); if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url; }
                 }
                 card.addEventListener('click', goProduct);
                 card.addEventListener('keydown', e => {
@@ -2444,9 +2445,9 @@
             menu.querySelectorAll('.md-links a').forEach(a => a.addEventListener('click', shut));
         })();
     </script>
-    <script src="assets/js/categorias.js?v=20261131"></script>
+    <script src="assets/js/categorias.js?v=20261132"></script>
     <script src="assets/js/bottomnav.js"></script>
-    <script src="assets/js/transition.js"></script>
+    <script src="assets/js/transition.js?v=20261132"></script>
     <script>
         (function () {
             var booted = false;
@@ -2556,7 +2557,7 @@
                 var card = t && t.closest ? t.closest('.combo-card') : null;
                 if (card) {
                     var cid = (card.__gdata && card.__gdata.id) || card.dataset.id;
-                    if (cid) location.href = 'producto.html?id=' + encodeURIComponent(cid);
+                    if (cid) { var url = 'producto.html?id=' + encodeURIComponent(cid); if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url; }
                 }
             });
 
@@ -2569,7 +2570,7 @@
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         var cid = (card.__gdata && card.__gdata.id) || card.dataset.id;
-                        if (cid) location.href = 'producto.html?id=' + encodeURIComponent(cid);
+                        if (cid) { var url = 'producto.html?id=' + encodeURIComponent(cid); if (window.GHTransition && window.GHTransition.go) window.GHTransition.go(url); else location.href = url; }
                     }
                 });
             });
@@ -2646,6 +2647,6 @@
         })();
     </script>
     <!-- Datos dinamicos (Supabase): config/sb/data ya cargados en <head> -->
-    <script src="assets/js/store.js?v=20261131"></script>
+    <script src="assets/js/store.js?v=20261132"></script>
 </body>
 </html>

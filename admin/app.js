@@ -2965,7 +2965,7 @@ var VIEW_ICO = {
             '<label class="check"><input type="checkbox" data-fx-enabled="' + esc(t.id) + '"' + (fx.enabled !== false ? ' checked' : '') + '><span>Efecto hover activo</span></label>' +
             '<label class="check"><input type="checkbox" data-fx-animate="' + esc(t.id) + '"' + (fx.animate !== false ? ' checked' : '') + '><span>Girar el borde</span></label>' +
             '<label class="check"><input type="checkbox" data-fx-glow="' + esc(t.id) + '"' + (fx.glow !== false ? ' checked' : '') + '><span>Resplandor exterior</span></label>' +
-            '<label class="check"><input type="checkbox" data-fx-transition="' + esc(t.id) + '"' + (fx.transition !== false ? ' checked' : '') + '><span>Transición al abrir/cerrar producto</span></label>' +
+            '<label class="check"><input type="checkbox" data-fx-transition="' + esc(t.id) + '"' + (fx.transition !== false ? ' checked' : '') + '><span>Transición de cuadros entre páginas</span></label>' +
           '</div>' +
           '<div class="field" style="margin-top:12px"><label>Vista previa</label>' +
             '<div class="theme-preview" data-preview>' +

@@ -5,6 +5,7 @@
     var STYLE_ID = 'gh-transition-style';
     var SQ = 'gh-grid-square';
     var GRID_BG = '#2A1B4D';
+    var NAV_KEY = 'gh-transition-pending';
 
     function gridBg() {
         if (window.GH_TRANSITION_BG) return window.GH_TRANSITION_BG;
@@ -27,6 +28,10 @@
 
     try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { reduce = false; }
     try { auto = navigator.webdriver === true; } catch (e) { auto = false; }
+
+    function skipped() {
+        return reduce || window.GH_TRANSITION_ENABLED === false || (auto && !window.GH_FORCE_TRANSITION);
+    }
 
     function injectStyle() {
         if (document.getElementById(STYLE_ID)) return;
@@ -93,10 +98,14 @@
     }
 
     function play(mid, done) {
-        if (busy) return;
+        if (busy) {
+            if (mid) mid();
+            if (done) done();
+            return;
+        }
         ensureGrid();
 
-        if (reduce || window.GH_TRANSITION_ENABLED === false || (auto && !window.GH_FORCE_TRANSITION)) {
+        if (skipped()) {
             if (mid) mid();
             if (done) done();
             return;
@@ -117,13 +126,60 @@
         });
     }
 
+    function go(url) {
+        if (!url) return;
+        if (skipped()) { location.href = url; return; }
+        try { sessionStorage.setItem(NAV_KEY, '1'); } catch (e) {}
+        play(null, function () { location.href = url; });
+    }
+
+    function navigable(e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false;
+        var a = e.target.closest('a[href]');
+        if (!a || a.hasAttribute('download') || a.dataset.noTransition != null) return false;
+        if (a.target && a.target !== '_self') return false;
+        var href = a.getAttribute('href');
+        if (!href || /^(#|javascript:|mailto:|tel:|sms:|whatsapp:)/i.test(href)) return false;
+        var url;
+        try { url = new URL(a.href, location.href); } catch (err) { return false; }
+        if (url.origin !== location.origin) return false;
+        if (!/^https?:$/.test(url.protocol)) return false;
+        if (url.pathname === location.pathname && url.search === location.search) return false;
+        if (/\.(pdf|zip|rar|7z|doc|docx|xls|xlsx|png|jpe?g|gif|webp|svg|mp3|mp4|webm)$/i.test(url.pathname)) return false;
+        return url.href;
+    }
+
+    function onLinkClick(e) {
+        var url = navigable(e);
+        if (!url) return;
+        e.preventDefault();
+        go(url);
+    }
+
+    function onReady() {
+        var pending = false;
+        try {
+            pending = sessionStorage.getItem(NAV_KEY) === '1';
+            sessionStorage.removeItem(NAV_KEY);
+        } catch (e) {}
+        if (pending && !skipped()) play(null, null);
+    }
+
     window.addEventListener('resize', function () {
         if (grid && !grid.classList.contains('active')) computeGrid();
     });
+    window.addEventListener('gh:ready', onReady);
 
-    function init() { injectStyle(); }
+    function init() {
+        injectStyle();
+        document.addEventListener('click', onLinkClick);
+    }
     if (document.readyState !== 'loading') init();
     else document.addEventListener('DOMContentLoaded', init);
 
-    window.GHTransition = { play: play, isBusy: function () { return busy; } };
+    window.GHTransition = {
+        play: play,
+        go: go,
+        isBusy: function () { return busy; }
+    };
 })();

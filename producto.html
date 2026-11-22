@@ -16,7 +16,7 @@
     <script src="assets/js/sb.js?v=20261103"></script>
     <script src="assets/js/store-gate.js?v=20261112"></script>
     <script src="assets/js/data.js"></script>
-    <link rel="stylesheet" href="assets/css/dark.css?v=20261131">
+    <link rel="stylesheet" href="assets/css/dark.css?v=20261132">
     <link rel="stylesheet" href="assets/css/glow-cards.css">
     <style>
         :root {
@@ -1021,10 +1021,10 @@
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('is-open')) shut(); });
         })();
     </script>
-    <script src="assets/js/categorias.js?v=20261131"></script>
+    <script src="assets/js/categorias.js?v=20261132"></script>
     <script src="assets/js/bottomnav.js"></script>
-    <script src="assets/js/transition.js"></script>
-    <script src="assets/js/store.js?v=20261131"></script>
+    <script src="assets/js/transition.js?v=20261132"></script>
+    <script src="assets/js/store.js?v=20261132"></script>
     <script>
         (function () {
             'use strict';
@@ -1320,7 +1320,7 @@
             addBtn.addEventListener('click', addToCart);
             buyNow.addEventListener('click', function () {
                 if (!addToCart()) return;
-                setTimeout(function () { location.href = 'checkout.html'; }, 180);
+                setTimeout(function () { if (window.GHTransition && window.GHTransition.go) window.GHTransition.go('checkout.html'); else location.href = 'checkout.html'; }, 180);
             });
             favBtn.addEventListener('click', function () {
                 if (!state.product) return;
