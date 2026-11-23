@@ -44,6 +44,7 @@
         ';--gh-brand-dark:' + v('brandDark', '#6d28d9') +
         ';--gh-brand-light:' + v('brandLight', '#a78bfa') +
         ';--gh-accent:' + v('accent', '#a855f7') +
+        ';--gh-cat-color:' + hex6(c.catColor, v('brand', '#7c3aed')) +
         ';--gh-bg:' + v('bg', '#ffffff') +
         ';--gh-surface:' + v('surface', '#f9fafb') +
         ';--gh-card-bg:' + bg('cardBg', '#ffffff') +
@@ -52,6 +53,7 @@
         ';--gh-surface:' + v('darkSurface', '#141422') +
         ';--gh-card-bg:' + bg('cardBgDark', '#070510') +
         ';--gh-text:' + v('darkText', '#e5e7eb') +
+        ';--gh-cat-color:' + hex6(c.catColorDark, hex6(c.catColor, '#a78bfa')) +
         ';--gh-footer-from:' + hex6(c.footerDarkFrom, '#0a0714') +
         ';--gh-footer-to:' + hex6(c.footerDarkTo, '#0f0a1e') +
         ';--gh-footer-border:' + hex6(c.footerDarkBorder, '#2a2f3a') +

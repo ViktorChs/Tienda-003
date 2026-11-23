@@ -2776,8 +2776,10 @@ var VIEW_ICO = {
   /* =========================================================
    *  Temas / Festivos
    * ========================================================= */
-  var COLOR_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'bg', 'surface', 'cardBg', 'text', 'darkBg', 'darkSurface', 'cardBgDark', 'darkText', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
+  var COLOR_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'catColor', 'catColorDark', 'bg', 'surface', 'cardBg', 'text', 'darkBg', 'darkSurface', 'cardBgDark', 'darkText', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
   var COLOR_DEFAULTS = {
+    catColor: '#7c3aed',
+    catColorDark: '#a78bfa',
     cardBg: '#ffffff',
     cardBgDark: '#070510',
     footerDarkFrom: '#0a0714',
@@ -2790,6 +2792,8 @@ var VIEW_ICO = {
     brandDark: 'Color principal al pasar el mouse',
     brandLight: 'Color principal suave (detalles)',
     accent: 'Color de acento',
+    catColor: 'Color del modal de categorías',
+    catColorDark: 'Color del modal de categorías (noche)',
     bg: 'Fondo de la página',
     surface: 'Fondo de paneles',
     cardBg: 'Fondo de tarjetas de producto',
@@ -2918,8 +2922,8 @@ var VIEW_ICO = {
         '<span><strong>Oscuro</strong><em>Fondo oscuro por defecto</em></span></button>' +
         '</div></div>';
 
-      var LIGHT_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'bg', 'surface', 'cardBg', 'text'];
-      var DARK_KEYS = ['darkBg', 'darkSurface', 'cardBgDark', 'darkText', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
+      var LIGHT_KEYS = ['brand', 'brandDark', 'brandLight', 'accent', 'catColor', 'bg', 'surface', 'cardBg', 'text'];
+      var DARK_KEYS = ['darkBg', 'darkSurface', 'cardBgDark', 'darkText', 'catColorDark', 'footerDarkFrom', 'footerDarkTo', 'footerDarkBorder', 'footerDarkDivider'];
       function colorInputs(keys, c, mode) {
         return keys.map(function (k) {
           var val = c[k] === 'transparent' ? (COLOR_DEFAULTS[k] || '#ffffff') : (c[k] || COLOR_DEFAULTS[k] || '#7c3aed');
