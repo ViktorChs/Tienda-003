@@ -122,8 +122,6 @@ html.dark nav.fixed.top-0 {
 }
 
 /* ---------- Loader de pagina ---------- */
-html.dark .pl { background: var(--gh-bg) !important; }
-
 /* ============================================================
    Componentes propios
    ============================================================ */
